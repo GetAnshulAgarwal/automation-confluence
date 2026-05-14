@@ -1,0 +1,281 @@
+image:
+  repository:  654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/lrd-export
+
+extraEnvs:
+  - name: DB_SID
+    value: "LRD"
+  - name: DB_DATABASEMACHINEIP
+    value: "prd-app-oracle-oracledb.cha4uqgeogfu.ap-southeast-1.rds.amazonaws.com"
+  - name: DB_BIDB_USER
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BIDB_USERNAME
+  - name: DB_BIDB_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BIDB_PASSWORD
+  - name: DB_BIDB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_BIDB_USERNAME
+  - name: DB_BIDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_BIDB_PASSWORD
+  - name: DB_DSDB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSDB_USERNAME
+  - name: DB_DSDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSDB_PASSWORD
+  - name: DB_DSLIODB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSLIODB_USERNAME
+  - name: DB_DSLIODB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSLIODB_PASSWORD
+  - name: DB_OPERATIONAL_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_OPERATIONALDB_USERNAME
+  - name: DB_OPERATIONALDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_OPERATIONALDB_PASSWORD
+  - name: DB_PORT
+    value: "1581"
+  - name: DB_CONNECTION_TIMEOUT
+    value: "120"
+  - name: DB_DRIVER_NAME
+    value: "oracle.jdbc.driver.OracleDriver"
+  - name: DB_MAX_ACTIVE_CONNECTIONS
+    value: "40"
+  - name: DB_MAX_IDLE_CONNECTIONS
+    value: "0"
+  - name: DB_MAX_WAIT_TIME
+    value: "30000"
+  - name: ME_NATSSERVER
+    value: "nats://nats.fms.itfs.lta.gov.sg:4222"
+  - name: ME_ISSINGLEFILEEXPORT
+    value: "true"
+  - name: ME_DATAEXPORTPROCESSINGPATH
+    value: "/san/MainETL/DataExportProcessing"
+  - name: ME_CSVSEPARATOR
+    value: ";" 
+  - name: ME_CUSTOMER
+    value: "LTA" 
+  - name: ME_EXPORTTABLENAME_1
+    value: "SCHEMA=BIDB, TABLE=SA_STOPPOINTS, RECIPIENT=ALL, DAY_TYPE=processday , FROM=sysdate-10h, TO=sysdate, PREFIX=DFYYYYMMdd_, FILENAME=, SUFFIX=SA_STOPPOINTS, COLHEADER=true, FHEADER=false, FFOOTER=false, EXPORT_MODE=route, EXPORT_TYPE=Stops"
+  - name: ME_EXPORTTABLENAME_2
+    value: "SCHEMA=BIDB, TABLE=SA_TRIPS, RECIPIENT=ALL, DAY_TYPE=processday , FROM=sysdate-10h, TO=sysdate, PREFIX=DFYYYYMMdd_, FILENAME=, SUFFIX=SA_TRIPS, COLHEADER=true, FHEADER=false, FFOOTER=false, EXPORT_MODE=route, EXPORT_TYPE=Trips"
+  - name: ME_EXPORTTABLENAME_3
+    value: "SCHEMA=BIDB, TABLE=DOOREVENTS, RECIPIENT=ALL, DAY_TYPE=processday , FROM=sysdate-10h, TO=sysdate, PREFIX=DFYYYYMMdd_, FILENAME=, SUFFIX=DOOREVENTS, COLHEADER=true, FHEADER=false, FFOOTER=false, EXPORT_MODE=route, EXPORT_TYPE=DoorEvents" 
+  - name: ME_OPERATOREXPORTPATH_1
+    value: "LOCATION=/san/Export/SMRT, SHORT_NAME=SMRT, FILTER=OPERATOR_SHORT_NAME, FILTER_TYPE=VARCHAR"
+  - name: ME_OPERATOREXPORTPATH_2
+    value: "LOCATION=/san/Export/SBST, SHORT_NAME=SBST, FILTER=OPERATOR_SHORT_NAME, FILTER_TYPE=VARCHAR"
+  - name: ME_OPERATOREXPORTPATH_3
+    value: "LOCATION=/san/Export/TTS, SHORT_NAME=TTS, FILTER=OPERATOR_SHORT_NAME, FILTER_TYPE=VARCHAR"
+  - name: ME_OPERATOREXPORTPATH_4
+    value: "LOCATION=/san/Export/GAS, SHORT_NAME=GAS, FILTER=OPERATOR_SHORT_NAME, FILTER_TYPE=VARCHAR"
+  - name: ME_OPERATOREXPORTPATH_5
+    value: "LOCATION=/san/Export/LTA, SHORT_NAME=LTA, FILTER=NONE, FILTER_TYPE=NONE"
+  - name: ME_OPERATOREXPORTPATH_6
+    value: "LOCATION=/san/Export/NTA_BIDA, SHORT_NAME=NTA, FILTER=NONE, FILTER_TYPE=NONE" 
+  - name: ME_EXPORTTYPEDAYTYPE_1
+    value: "EXPORTTYPE=route, DAYTYPE=processday, FROM=sysdate-10h, TO=sysdate"
+  - name: ME_EXPORTTYPEDAYTYPE_2
+    value: "EXPORTTYPE=vehicle, DAYTYPE=processday, FROM=sysdate-10h, TO=sysdate"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: ME_LOCALCACHEURL
+    value: "https://lrd-cache.fms.itfs.lta.gov.sg/v1/"
+  - name: ME_BACKUPPATH
+    value: "/LRD_Backup/"
+  - name: ME_BACKUPENABLE
+    value: "Y"
+  - name: ME_DELETEFILESOFFSET
+    value: "4"
+  - name: ME_FOLDERWISEEXPORTENABLE
+    value: "false"
+  - name: ME_EXPORTROUTESUBJECT
+    value: "RouteId"
+  - name: ME_EXPORTSTREAMNAME
+    value: "BIExport"
+  - name: ME_CACHEUPDATEDSUBJECT
+    value: "CacheUpdated"
+  - name: ME_NATSREPLICAS
+    value: "3"
+  - name: ME_NATS_RETENTION_MESSAGE_DAYS
+    value: "7"
+  - name: ME_CACHESTREAMNAME
+    value: "CacheUpdatedStream"
+  - name: "THREAD_STALL_THRESHOLD_SECS"
+    value: "600"
+  - name: NATS_ALERT_SUBJECT
+    value: "LRD.Alerts.Alert"
+  - name: MEMORY_THRESHOLD_MB
+    value: "300"
+  - name: ISLEASEENABLE
+    value: "true"
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+  - name: ME_PARALLELROUTEPROCESSINGCOUNT
+    value: "0"
+  - name: ME_TCCASUBJECTNAME
+    value: "TccaOperatorDetails"
+  - name: ME_TCCASTREAMNAME
+    value: "TccaOperator"
+  - name: ME_TCCAEXPORTFORMAT
+    value: "xls"
+  - name: ME_TCCATEMPFILELOCATION
+    value: "/san/MainETL/TempTCCALocation"
+  - name: ME_TCCAOPERATOREXPORTPATH_1
+    value: "STAGED_LOC=/san/LTATCCAExport/SMRT,IMPUTED_LOC=/san/LTATCCAExport/SMRT,SHORT_NAME=SMRT,FILTER=OPERATOR_SHORT_NAME,FILTER_TYPE=VARCHAR"
+  - name: ME_TCCAOPERATOREXPORTPATH_2
+    value: "STAGED_LOC=/san/LTATCCAExport/SBST,IMPUTED_LOC=/san/LTATCCAExport/SBST,SHORT_NAME=SBST,FILTER=OPERATOR_SHORT_NAME,FILTER_TYPE=VARCHAR"
+  - name: ME_TCCAOPERATOREXPORTPATH_3
+    value: "STAGED_LOC=/san/LTATCCAExport/TTS,IMPUTED_LOC=/san/LTATCCAExport/TTS,SHORT_NAME=TTS,FILTER=OPERATOR_SHORT_NAME,FILTER_TYPE=VARCHAR"
+  - name: ME_TCCAOPERATOREXPORTPATH_4
+    value: "STAGED_LOC=/san/LTATCCAExport/GAS,IMPUTED_LOC=/san/LTATCCAExport/GAS,SHORT_NAME=GAS,FILTER=OPERATOR_SHORT_NAME,FILTER_TYPE=VARCHAR"
+  - name: ME_TCCAOPERATOREXPORTPATH_5
+    value: "STAGED_LOC=/san/LTATCCAExport/LTA,IMPUTED_LOC=/san/LTATCCAExport/LTA,SHORT_NAME=NTA,FILTER=NONE,FILTER_TYPE=NONE"
+
+extraDeploy:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: leader-election-role
+      namespace: lrd-export
+    rules:
+      - apiGroups: ["coordination.k8s.io"]
+        resources: ["leases"]
+        verbs: ["get","list","watch","create","update","patch"]
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: leader-election-binding
+      namespace: lrd-export
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: leader-election-role
+    subjects:
+      - kind: ServiceAccount
+        name: lrd-export-sa
+        namespace: lrd-export
+
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: lrd-export-san-fsx-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: ""
+      volumeName: lrd-export-san-fsx-pv
+
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: lrd-export-san-s3-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 100Gi
+      storageClassName: ""
+      volumeName: lrd-export-san-s3-pv
+  
+serviceAccount:
+  create: true
+  name: lrd-export-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-LRD
+
+extraVolumes:
+  - name: fsx-data
+    persistentVolumeClaim:
+      claimName: lrd-export-san-fsx-pvc
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "lrd-export-spc"
+  - name: s3-data
+    persistentVolumeClaim:
+      claimName: lrd-export-san-s3-pvc
+
+extraVolumeMounts:
+  - name: fsx-data
+    mountPath: "/san"
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true
+  - name: s3-data
+    mountPath: "/LRD_Backup"
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/healthcheck-path: "/readyz"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: lrd-export.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - lrd-export.fms.itfs.lta.gov.sg
+      secretName: lrd-export-tls
+      
+keda:
+  enabled: true
+  secret: {}
+  scaledObject:
+    minReplicas: 2
+    maxReplicas: 5
+    pollingInterval: 5
+    triggers:
+      - type: nats-jetstream
+        metadata:
+          natsServerMonitoringEndpoint: "nats://nats.fms.itfs.lta.gov.sg:8222"
+          account: "$G"
+          stream: "BIExport"
+          consumer: "bi_export1"
+          lagThreshold: "100"

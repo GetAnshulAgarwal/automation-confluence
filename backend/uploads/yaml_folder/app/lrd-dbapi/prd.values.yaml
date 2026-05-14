@@ -1,0 +1,105 @@
+image:
+  repository:  654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/lrd-dbapi
+
+extraEnvs:
+  - name: ORACLE_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: REPORTINGDB_USERNAME
+  - name: ORACLE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: REPORTINGDB_PASSWORD
+  - name: ORACLE_DATABASE_MACHINE_IP
+    value: "prd-app-oracle-oracledb.cha4uqgeogfu.ap-southeast-1.rds.amazonaws.com"
+  - name: ORACLE_SERVICE_NAME
+    value: "LRD"
+  - name: ORACLE_PORT
+    value: "1581"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: PROPERTY_OTLP_COLLECTOR_URL
+    value: "http://opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+  - name: NATS_URL
+    value: "nats://nats.fms.itfs.lta.gov.sg:4222"
+  - name: NATS_SUBJECT
+    value: "LRD.Alerts.Alert"
+  - name: LEADER_ELECTION_ENABLED
+    value: "1"
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/healthcheck-path: "/readyz"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: lrd-dbapi.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - lrd-dbapi.fms.itfs.lta.gov.sg
+      secretName: lrd-dbapi-tls
+
+extraDeploy:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: leader-election-role
+      namespace: lrd-dbapi
+    rules:
+      - apiGroups: ["coordination.k8s.io"]
+        resources: ["leases"]
+        verbs: ["get","list","watch","create","update","patch"]
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: leader-election-binding
+      namespace: lrd-dbapi
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: leader-election-role
+    subjects:
+      - kind: ServiceAccount
+        name: lrd-dbapi-sa
+        namespace: lrd-dbapi
+
+serviceAccount:
+  create: true
+  name: lrd-dbapi-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-LRD
+
+extraVolumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "lrd-dbapi-spc"
+    
+extraVolumeMounts:
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true

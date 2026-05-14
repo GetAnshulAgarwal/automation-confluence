@@ -1,0 +1,535 @@
+image:
+  repository:  654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/lrd-safparser
+
+extraEnvs:
+  - name: SID
+    value: "LRD"
+  - name: DATABASEMACHINEIP
+    value: "prd-app-oracle-oracledb.cha4uqgeogfu.ap-southeast-1.rds.amazonaws.com"
+  - name: NATSSERVER
+    value: "nats://nats.fms.itfs.lta.gov.sg:4222"
+  - name: VEHICLERECORDINGSPATH
+    value: "/san/MainETL/vehicleRecordings"
+  - name: NUMOFSAFS
+    value: "30"
+  - name: SAF_INPUT_SOURCE
+    value: "nats"
+  - name: LOG_APPENDER
+    value: "ConsoleAppender"
+  - name: SAFSTREAMNAME
+    value: "SafFiles"
+  - name: SAFFILEPATHSUBJECT
+    value: "SafFilePathSubject"
+  - name: SAFSTAGINGSTATUSSUBJECT
+    value: "StagingStatus"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: BACKUPPATH
+    value: "/LRD_Backup/SAF/"
+  - name: BACKUPENABLE
+    value: "Y"
+  - name: DELETEFILESOFFSET
+    value: "4"
+  - name: BIDB_USER
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BIDB_USERNAME
+  - name: BIDB_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BIDB_PASSWORD
+  - name: BIDB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_BIDB_USERNAME
+  - name: BIDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_BIDB_PASSWORD
+  - name: DSDB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSDB_USERNAME
+  - name: DSDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSDB_PASSWORD
+  - name: DSLIODB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSLIODB_USERNAME
+  - name: DSLIODB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSLIODB_PASSWORD
+  - name: OPERATIONAL_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_OPERATIONALDB_USERNAME
+  - name: OPERATIONALDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_OPERATIONALDB_PASSWORD
+  - name: DB_CONNECTION_TIMEOUT
+    value: "120"
+  - name: DB_DRIVER_NAME
+    value: "oracle.jdbc.driver.OracleDriver"
+  - name: DB_MAX_ACTIVE_CONNECTIONS
+    value: "40"
+  - name: DB_MAX_IDLE_CONNECTIONS
+    value: "0"
+  - name: DB_MAX_WAIT_TIME
+    value: "30000"
+  - name: PORT
+    value: "1581"
+  - name: FILESPROCESSEDFOLDER
+    value: "FilesProcessed"
+  - name: FILESTOLOADFOLDER
+    value: "FilesToLoad"
+  - name: FILESNOTPROCESSEDFOLDER
+    value: "FilesNotProcessed"
+  - name: FILESTOPROCESSFOLDER
+    value: "FilesToProcess"
+  - name: FILESLOADEDFOLDER
+    value: "FilesLoaded"
+  - name: SAFFILEDETAILANDHUGEIMPORTSANPATH
+    value: "/san/MainETL/VehicleRecordings"
+  - name: IMPORTTYPE
+    value: "ALL"
+  - name: NATIVEZIP
+    value: "SVDO"
+  - name: STANDARD_IMPORT_EVENTS
+    value: "1,11,12,15,41,42,51,53,71,72,74,82,83,101,104,105,107,109,114,116,117,118,120,133,134,135,136,201,211,222,223,254,255"
+  - name: DETAIL_IMPORT_EVENTS
+    value: "21,31,101,104,107"
+  - name: HUGE_IMPORT_EVENTS
+    value: "2,134"
+  - name: ALL_IMPORT_EVENTS
+    value: "1,2,3,4,5,6,11,12,15,21,31,41,42,43,44,51,53,71,72,74,82,83,101,104,105,107,109,114,116,117,118,120,122,133,134,135,136,201,211,220,222,223,254,255"
+  - name: POPULATEMAPGRIDDATA
+    value: "true"
+  - name: MAPREGIONID
+    value: "101"
+  - name: SAFINTERFACEVERSION
+    value: "305"
+  - name: STOPZONEEVENTTOHEADWAYEVENTTHRESHOLD
+    value: "30000"
+  - name: SUCCESSIVERECORDTIMETHRESHOLD
+    value: "5000"
+  - name: ODOMETERTHRESHOLD
+    value: "0"
+  - name: ISEVENTODOMETERDIFFERENTIAL
+    value: "false"
+  - name: NATSREPLICAS
+    value: "3"
+  - name: NATSSTREAMRENTENTIONDAYS
+    value: "7"
+  - name: VERBOSE_MODE
+    value: "true"
+  - name: FPGA_IBBREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){5})([0-9A-Z]{5})[\\.](?!(?:0){2})([0-9A-Z]{2})$'"
+  - name: FPGA_IIFREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){5})([0-9A-Z]{5})[\\.](?!(?:0){2})([0-9A-Z]{2})$'"
+  - name: FPGA_IR1REGEX
+    value: "'.+'"
+  - name: FPGA_RCAREGEX
+    value: "'.+'"
+  - name: GSM_FWREGEX
+    value: "'(?!0+$)[A-Z0-9]{6}'"
+  - name: GSM_IMEIREGEX
+    value: "'(?!(?:0){15})([0-9]{15})$'"
+  - name: GSM_MANUFREGEX
+    value: "'.+'"
+  - name: GSM_MODELREGEX
+    value: "'.+'"
+  - name: GSM_REVREGEX
+    value: "'[0-9A-Z]{16}'"
+  - name: GSM_RXGAINREGEX
+    value: "'[0-1]'"
+  - name: GSM_TXGAINREGEX
+    value: "'[0-1]'"
+  - name: IBIS_AMNREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: IBIS_CFGVERSIONREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: IBIS_BUILDREGEX
+    value: "'.+'"
+  - name: IBIS_CFGNAMEREGEX
+    value: "'.*'"
+  - name: IBIS_DEPLOYMENTREGEX
+    value: "'.+'"
+  - name: IBIS_FUNCTIONREGEX
+    value: "'(0x([0-9a-f]){2})(( 0x([0-9a-f]){2})*)'"
+  - name: IBIS_ROLEREGEX
+    value: "'(0x([0-9a-f]){2})(( 0x([0-9a-f]){2})*)'"
+  - name: IBIS_TYPEREGEX
+    value: "'[a-z]+'"
+  - name: IBIS_EEPROM
+    value: "'(?!(?:0){6})([A-Z0-9]{6})[_](?!(?:0){4})([0-9A-Z]{4})[_](?!(?:0){2})([0-9A-Z]{2})[_](?!(?:0){2})([0-9A-Z]{2})$'"
+  - name: IBIS_RTC
+    value: "'[0-9A-Z]{6}'"
+  - name: IBIS_ELACFG
+    value: "'.+'"
+  - name: IBIS_GPSCFG
+    value: "'.+'"
+  - name: LAN_IPREGEX
+    value: "'(^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3})(( (25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3})*)'"
+  - name: LAN_MACREGEX
+    value: "'(?!(?:00[:-]){5}00)(?!(?:FF[:-]){5}FF)((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2})'"
+  - name: NAV_NAVREGEX
+    value: "'.+'"
+  - name: NAV_MAPREGEX
+    value: "'.+'"
+  - name: PARAPP_DRIVEREGEX
+    value: "'([a-z]){1}:'"
+  - name: PARAPP_FREEREGEX
+    value: "'\\d+ MB'"
+  - name: PARAPP_FSREGEX
+    value: "'[A-Z0-9]+'"
+  - name: PARAPP_PROTECTEDREGEX
+    value: "'[0-1]'"
+  - name: PARAPP_TOTALREGEX
+    value: "'\\d+ MB'"
+  - name: PARDATA_DRIVEREGEX
+    value: "'([a-z]){1}:'"
+  - name: PARDATA_FREEREGEX
+    value: "'\\d+ MB'"
+  - name: PARDATA_FSREGEX
+    value: "'[A-Z0-9]+'"
+  - name: PARDATA_PROTECTEDREGEX
+    value: "'[0-1]'"
+  - name: PARDATA_TOTALREGEX
+    value: "'\\d+ MB'"
+  - name: PAROS_DRIVEREGEX
+    value: "'([a-z]){1}:'"
+  - name: PAROS_FREEREGEX
+    value: "'\\d+ MB'"
+  - name: PAROS_FSREGEX
+    value: "'[A-Z0-9]+'"
+  - name: PAROS_PROTECTEDREGEX
+    value: "'[0-1]'"
+  - name: PAROS_TOTALREGEX
+    value: "'\\d+ MB'"
+  - name: PARSCRATCH_DRIVEREGEX
+    value: "'([a-z]){1}:'"
+  - name: PARSCRATCH_FREEREGEX
+    value: "'\\d+ MB'"
+  - name: PARSCRATCH_FSREGEX
+    value: "'[A-Z0-9]+'"
+  - name: PARSCRATCH_PROTECTEDREGEX
+    value: "'[0-1]'"
+  - name: PARSCRATCH_TOTALREGEX
+    value: "'\\d+ MB'"
+  - name: PLD_IIFREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){5})([0-9A-Z]{5})[\\.](?!(?:0){2})([0-9A-Z]{2})$'"
+  - name: PLD_IKBREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){5})([0-9A-Z]{5})[\\.](?!(?:0){2})([0-9A-Z]{2})$'"
+  - name: PLD_IKBVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){5})([0-9A-Z]{5})[\\.](?!(?:0){2})([0-9A-Z]{2})$'"
+  - name: PLD_IPBVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){5})([0-9A-Z]{5})[\\.](?!(?:0){2})([0-9A-Z]{2})$'"
+  - name: PWRLINE_MACREGEX
+    value: "'(?!(?:00[:-]){5}00)(?!(?:FF[:-]){5}FF)((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2})'"
+  - name: PWRLINE_IPREGEX
+    value: "'^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$'"
+  - name: SERVICE_ACUREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_ACUVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_CELREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_CELVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_DIOREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_DIOVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.]([0-9A-Z]{7,8})$'"
+  - name: SERVICE_E2PREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_E2PVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_GPSREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_GPSVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_MPDREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.]([0-9A-Z]{7,8})$'"
+  - name: SERVICE_MPDVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.]([0-9A-Z]{7,8})$'"
+  - name: SERVICE_NWREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_NWKREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_NWKVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_OBUREGEX
+    value: "'(?!(?:0){8})([A-Z]{8})[-]([0-9]{1})[\\.]([0-9]{1})[\\.]([0-9]{1})[\\.]([0-9]{1})$'"
+  - name: SERVICE_OBUVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_ODOREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_ODOVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_OPENVPNREGEX
+    value: "'.+'"
+  - name: SERVICE_RTCREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_RTCVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.]([0-9A-Z]{7,8})$'"
+  - name: SERVICE_SWCREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_SYSREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_SYSVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_TTSREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_TTSVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_WDOREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: SERVICE_WDOVIEWERAREGEX
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.]([0-9A-Z]{7,8})$'"
+  - name: SIM_APNREGEX
+    value: "'.+'"
+  - name: SIM_IDREGEX
+    value: "'(?!(?:0){20})([0-9]{20})$'"
+  - name: SIM_PHNOREGEX
+    value: "'.+'"
+  - name: SIM_PREFOPREGEX
+    value: "'.+'"
+  - name: SIM_PINREGEX
+    value: "'.+'"
+  - name: UMTS_IPREGEX
+    value: "'^(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)(\\.(25[0-5]|2[0-4]\\d|[0-1]?\\d?\\d)){3}$'"
+  - name: UMTS_MACREGEX
+    value: "'(?!(?:00[:-]){5}00)(?!(?:FF[:-]){5}FF)((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2})'"
+  - name: WLAN_MACREGEX
+    value: "'(?!(?:00[:-]){5}00)(?!(?:FF[:-]){5}FF)((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2})'"
+  - name: WLAN_IPREGEX
+    value: "'.+'"
+  - name: GPS_HWREGEX
+    value: "'[0-9A-Z]{3}( \\d.\\d{2})'"
+  - name: GPS_FWREGEX
+    value: "'.+'"
+  - name: GPS_MOUNTING
+    value: "'.+'"
+  - name: PLATFORM_OS
+    value: "'(?!(?:0){7})([A-Z0-9]{7})[\\.](?!(?:0){8})([0-9A-Z]{8})$'"
+  - name: PLATFORM_OSVIEWERA
+    value: "'.+'"
+  - name: PLATFORM_PORT
+    value: "'.+'"
+  - name: PLATFORM_PRODUCTSERIALNO
+    value: "'.+'"
+  - name: PLATFORM_PRODUCTSERIALNO_VIEWERA
+    value: "'.+'"
+  - name: PLATFORM_PRODUCTSERIALNO_VIEWERB
+    value: "'.+'"
+  - name: PLATFORM_IBBREV
+    value: "'.+'"
+  - name: PLATFORM_PORTVB
+    value: "'.+'"
+  - name: PLATFORM_PORTGSM
+    value: "'.+'"
+  - name: PLATFORM_PORTTB
+    value: "'.+'"
+  - name: PLATFORM_PORTGPS
+    value: "'.+'"
+  - name: PLATFORM_PORTGPRS
+    value: "'.+'"
+  - name: PLATFORM_PORTRC
+    value: "'.+'"
+  - name: PLATFORM_PORTCAN
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO0
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO1
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO2
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO3
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO4
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO5
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO6
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO7
+    value: "'.+'"
+  - name: PLATFORM_PORTXCO8
+    value: "'.+'"
+  - name: PLATFORM_PORTDISP
+    value: "'.+'"
+  - name: PLATFORM_PORTSPB
+    value: "'.+'"
+  - name: PLATFORM_PORTRADIO2D
+    value: "'.+'"
+  - name: PLATFORM_PORTRADIO2C
+    value: "'.+'"
+  - name: PLATFORM_PORTTLP
+    value: "'.+'"
+  - name: PLATFORM_PORTJ1708
+    value: "'.+'"
+  - name: PLATFORM_PORTUSB1
+    value: "'.+'"
+  - name: PLATFORM_PORTUSB2
+    value: "'.+'"
+  - name: VPN_MACREGEX
+    value: "'(?!(?:00[:-]){5}00)(?!(?:FF[:-]){5}FF)((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2})'"
+  - name: VPN2_MACREGEX
+    value: "'(?!(?:00[:-]){5}00)(?!(?:FF[:-]){5}FF)((?:[0-9a-f]{2}[:-]){5}[0-9a-f]{2})'"
+  - name: CAN_FMS_FW
+    value: "'.+'"
+  - name: CAN_FMS_VIN
+    value: "'.+'"
+  - name: CAN_FMS_BUSVER
+    value: "'.+'"
+  - name: CAN_FMS_TRUCKVER
+    value: "'.+'"
+  - name: PLATFORM_CERT
+    value: "'.+'"
+  - name: PERIPHERY_REGEX
+    value: "'.+'"
+  - name: "THREAD_STALL_THRESHOLD_SECS"
+    value: "600"
+  - name: NATS_ALERT_SUBJECT
+    value: "LRD.Alerts.Alert"
+  - name: MEMORY_THRESHOLD_MB
+    value: "1800"
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+        
+extraDeploy:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: lrd-safparser-san-fsx-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: ""
+      volumeName: lrd-safparser-san-fsx-pv
+
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: lrd-safparser-ddm-fsx-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: ""
+      volumeName: lrd-safparser-ddm-fsx-pv
+  
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: lrd-safparser-san-s3-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      storageClassName: ""
+      resources:
+        requests:
+          storage: 100Gi
+      volumeName: lrd-safparser-san-s3-pv
+
+extraVolumes:
+  - name: fsx-data
+    persistentVolumeClaim:
+      claimName: lrd-safparser-san-fsx-pvc
+
+  - name: fsx-ddmdata
+    persistentVolumeClaim:
+      claimName: lrd-safparser-ddm-fsx-pvc
+  
+  - name: s3-data
+    persistentVolumeClaim:
+      claimName: lrd-safparser-san-s3-pvc
+
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "lrd-safparser-spc"
+    
+extraVolumeMounts:
+  - name: fsx-ddmdata
+    mountPath: "/ddm"
+  - name: fsx-data
+    mountPath: "/san"
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true
+  - name: s3-data
+    mountPath: "/LRD_Backup"
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/healthcheck-path: "/readyz"
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: lrd-safparser.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - lrd-safparser.fms.itfs.lta.gov.sg
+      secretName: lrd-safparser-tls
+
+serviceAccount:
+  create: true
+  name: lrd-safparser-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-LRD
+
+keda:
+  enabled: true
+  secret: {}
+  scaledObject:
+    minReplicas: 2
+    maxReplicas: 5
+    pollingInterval: 5
+    triggers:
+      - type: nats-jetstream
+        metadata:
+          natsServerMonitoringEndpoint: "nats://nats.fms.itfs.lta.gov.sg:8222"
+          account: "$G"
+          stream: "SafFiles"
+          consumer: "vehicle_parser"
+          lagThreshold: "10"

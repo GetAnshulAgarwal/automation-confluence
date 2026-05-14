@@ -1,0 +1,37 @@
+bases:
+  - ../global.yaml
+  - app.yaml
+
+helmfiles:
+  - path: common-trapeze/nats/helmfile.yaml
+
+  - path: actionmanager/helmfile.yaml
+  # - path: busdispatchservice/helmfile.yaml
+  - path: clientproxy/helmfile.yaml
+  - path: config-api/helmfile.yaml
+  - path: dataprovider/helmfile.yaml
+    ## ddm
+  - path: ddm-backend/helmfile.yaml
+  - path: ddm-import/helmfile.yaml
+  - path: ddm-message/helmfile.yaml
+  - path: ddm-webapi/helmfile.yaml
+  
+  - path: dispatcherclientweb/helmfile.yaml
+  - path: downlinkcommproxy/helmfile.yaml
+  - path: downlinkconnector/helmfile.yaml
+  - path: eventservice/helmfile.yaml
+    ## liodata
+  - path: liodata-consumer/helmfile.yaml
+  - path: liodata-routing/helmfile.yaml
+  # - path: liodata-scheduler/helmfile.yaml
+  - path: liodata-webapi/helmfile.yaml
+  - path: liosetweb/helmfile.yaml
+  - path: modeladapter/helmfile.yaml
+  - path: obelisk/helmfile.yaml
+  - path: schedule/helmfile.yaml
+  - path: session/helmfile.yaml
+  - path: softphone/helmfile.yaml
+  - path: softphonebackend/helmfile.yaml
+  - path: timetable-api/helmfile.yaml
+  - path: uplinkconnector/helmfile.yaml
+  - path: vehicleservice/helmfile.yaml

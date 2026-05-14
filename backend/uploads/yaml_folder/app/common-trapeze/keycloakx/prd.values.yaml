@@ -1,0 +1,115 @@
+database:
+  hostname: prd-app-pgsql-pgsqldb.cluster-cha4uqgeogfu.ap-southeast-1.rds.amazonaws.com
+  port: 5482
+  database: keycloak
+  username: keycloak_user
+  existingSecret: aws-secrets-manager-secret
+  existingSecretKey: password
+
+replicas: 1
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 5
+
+image:
+  repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/quay.io/keycloak/keycloak
+  tag: "26.5.5"
+
+extraEnv: |
+  - name: TZ
+    value: Asia/Singapore
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: admin
+  - name: KC_HOSTNAME
+    value: "https://keycloak.fms.itfs.lta.gov.sg"
+  - name: JAVA_OPTS_APPEND
+    value: "-Xms1024m -Xmx2048m -Djgroups.dns.query=keycloakx-headless.keycloakx.svc.cluster.local -Dcom.sun.jndi.ldap.object.disableEndpointIdentification=true"
+  - name: QUARKUS_TRANSACTION_MANAGER_ENABLE_RECOVERY #  WARN  [io.quarkus.agroal.runtime.DataSources] (main) Datasource <default> enables XA but transaction recovery is not enabled. Please enable transaction recovery by setting quarkus.transaction-manager.enable-recovery=true, otherwise data may be lost if the application is terminated abruptly
+    value: "true"
+  - name: KC_METRICS_ENABLED
+    value: "true"
+  - name: KC_HTTP_METRICS_HISTOGRAMS_ENABLED
+    value: "true"
+  - name: KC_CACHE_METRICS_HISTOGRAMS_ENABLED
+    value: "true"
+  - name: KC_EVENT_METRICS_USER_ENABLED
+    value: "true"
+  - name: KC_EVENT_METRICS_USER_TAGS
+    value: "realm"  # value can also be "realm,clientId,idp" but avoiding it because if there are a lot of clients then the cardinality can increase a lot and it may increase the memory usage of prometheus substantially
+  - name: KC_FEATURES
+    value: "client-secret-rotation"  # allows old and new secret to work simultaneously during rotation
+  - name: KC_TRUSTSTORE_PATHS
+    value: "/certs/prd-lta-dc.crt"
+
+
+# # Realm import on startup
+# args:
+#   - "start"
+#   - "--import-realm"
+
+resources:
+  requests:
+    memory: "1024Mi"
+    cpu: "500m"
+  limits:
+    memory: "2048Mi"
+    cpu: "1000m"
+
+ingress:
+  enabled: true
+  ingressClassName: alb-internal-app
+  rules:
+    - host: keycloak-app.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls: []
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: "/health/ready"
+    alb.ingress.kubernetes.io/healthcheck-port: "9000"
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-08b5165e42765ab7d # PRD-APP-INTRA-EKS-APP-SG-ALB-EKS
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+  console:
+    enabled: false
+
+serviceAccount:
+  create: true
+  name: keycloakx-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-KEYCLOAK
+
+extraVolumes: |
+  - name: keycloak-cert-volume
+    configMap:
+      name: keycloakx-ldap-cert
+  - name: keycloakx-volume
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "keycloakx-spc"
+#   - name: realm-import
+#     configMap:
+#       name: keycloak-realm
+# # above only on Realm import on startup
+
+extraVolumeMounts: |
+  - name: keycloak-cert-volume
+    mountPath: /certs
+    readOnly: true
+  - name: keycloakx-volume
+    mountPath: /opt/keycloak/secrets/
+    readOnly: true
+#   - name: realm-import
+#     mountPath: /opt/keycloak/data/import
+# # above only on Realm import on startup

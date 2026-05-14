@@ -1,0 +1,125 @@
+extraEnvs:
+  - name: SID
+    value: "LRD"
+  - name: DatabaseMachineIP
+    value: "uat-app-aurora-oracle-oracledb.cjyyk4aoo8q7.ap-southeast-1.rds.amazonaws.com"
+  - name: BIDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: DSDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: DSLIODB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: OPERATIONALDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: Port
+    value: "1581"
+  - name: KAFKA_SERVER
+    value: "b-1.uatappmskmskclust.kkfygc.c5.kafka.ap-southeast-1.amazonaws.com:9096,b-2.uatappmskmskclust.kkfygc.c5.kafka.ap-southeast-1.amazonaws.com:9096"
+  - name: KAFKA_TOPIC_SIRISM
+    value: "cc_lrd_passages"
+  - name: KAFKA_CONSUMER_GROUPID
+    value: "group1"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: KAFKA_USERNAME
+    value: "lrd-ccrealtimeupload"
+  - name: KAFKA_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KAFKA_PASSWORD
+  - name: LOGGING_MODE
+    value: "console"
+  - name: NATS_SERVER
+    value: "nats://nats.fms-uat.itfs.lta.gov.sg:4222"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+  - name: KAFKA_THRESHOLD_MINUTES
+    value: "60"
+  - name: NATS_ALERT_SUBJECT
+    value: "REALTIME.Alerts.Alert"
+  - name: MEMORY_THRESHOLD_MB
+    value: "700"
+  - name: HEARTBEAT_THRESHOLD_MINS
+    value: "20"
+    
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/healthcheck-path: /readyz
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: realtimeapp.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - realtimeapp.fms-uat.itfs.lta.gov.sg
+      secretName: realtimeapp-tls
+
+resources:
+  limits:
+    cpu: "2"
+    memory: 5Gi
+  requests:
+    cpu: 512m
+    memory: 1Gi
+
+keda:
+  enabled: true
+  secret:
+    existingSecret: "aws-secrets-manager-secret"
+    usernameKey: "KAFKA_USERNAME"
+    passwordKey: "KAFKA_PASSWORD"
+    sasl: "scram_sha512"
+    tls: "enable"
+  scaledObject:
+    minReplicas: 1
+    maxReplicas: 20
+    pollingInterval: 5
+    triggers:
+      - type: kafka
+        metadata:
+          bootstrapServers: "b-1.uatappmskmskclust.kkfygc.c5.kafka.ap-southeast-1.amazonaws.com:9096,b-2.uatappmskmskclust.kkfygc.c5.kafka.ap-southeast-1.amazonaws.com:9096"
+          consumerGroup: "kafkagroup99574"
+          topic: "cc_lrd_passages"
+          lagThreshold: "300"
+
+serviceAccount:
+  create: true
+  name: realtimeapp-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/UAT-IAMR-EKS-POD-IDENTITY-LRD
+extraVolumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "realtimeapp-spc"
+extraVolumeMounts:
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true

@@ -1,0 +1,45 @@
+extraEnvs:
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: NATS_URL
+    value: "nats://nats.nats.svc.cluster.local:4222"
+  - name: PORT
+    value: "8000"
+  - name: LIODATATOPIC
+    value: "LioData.Alerts.Alert"
+  - name: DDMTOPIC
+    value: "DDM.Alerts.Alert"
+  - name: LRDTOPIC
+    value: "LRD.Alerts.Alert"
+  - name: CCTOPIC
+    value: "ControlCenter.Alerts.Alert"
+  - name: AIMLTOPIC
+    value: "AIML.Alerts.Alert"
+  - name: REALTIMETOPIC
+    value: "RealTime.Alerts.Alert"
+  - name: CANTOPIC
+    value: "CAN.Alerts.Alert"
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  hosts:
+    - host: nats-engine.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - nats-engine.fms-uat.itfs.lta.gov.sg
+      secretName: nats-engine-tls
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-0e94cb42970e1c3d9
+    alb.ingress.kubernetes.io/success-codes: "200,302"
+    alb.ingress.kubernetes.io/healthcheck-path: "/health"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c

@@ -1,0 +1,16 @@
+global:
+  image:
+    registry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+
+image:
+  pullPolicy: IfNotPresent
+  keda:
+    repository: ghcr.io/kedacore/keda
+    tag: 2.19.0
+  metricsApiServer:
+    repository: ghcr.io/kedacore/keda-metrics-apiserver
+    tag: 2.19.0
+  webhooks:
+    repository: ghcr.io/kedacore/keda-admission-webhooks
+    tag: 2.19.0
+

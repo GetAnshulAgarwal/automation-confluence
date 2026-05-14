@@ -1,0 +1,12 @@
+controller:
+  serviceAccount:
+    create: true
+    name: aws-fsx-openzfs-csi-controller-sa
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/aws-fsx-openzfs-csi-driver-controller-irsa-app
+node:
+  serviceAccount:
+    create: true
+    name: aws-fsx-openzfs-csi-node-sa
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/aws-fsx-openzfs-csi-driver-node-irsa-app

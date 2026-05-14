@@ -1,0 +1,16 @@
+actionmanager:3.17.26
+busdispatchservice:1.7.14
+clientproxy:4.15.9
+config-api:4.5.0
+downlinkcommproxy:2.4.1
+downlinkconnector:2.10.2
+eventservice:2.13.10
+geoserver:1.9.0
+liosetweb:4.3.0
+modeladapter-2:1.12.11
+modeladapter:1.12.11
+schedule:2.19.7
+session:2.11.9
+timetable-api:3.10.7
+uplinkconnector:2.12.4
+vehicleservice:1.68.11

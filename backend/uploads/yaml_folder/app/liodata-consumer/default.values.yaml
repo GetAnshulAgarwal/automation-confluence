@@ -1,0 +1,39 @@
+replicaCount: 1
+
+image:
+  repository: liodata-consumer
+  tag: 1.0.27
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 5000
+
+resources:
+  limits:
+    cpu: "2"
+    memory: 8Gi
+  requests:
+    cpu: 128m
+    memory: 150Mi
+
+livenessProbe: 
+  httpGet:
+    path: "/healthcheck/liveness/"
+    port: 8100
+    scheme: HTTP
+  initialDelaySeconds: 60
+  timeoutSeconds: 25
+  periodSeconds: 60
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe: 
+  httpGet:
+    path: "/healthcheck/readiness/"
+    port: 8100
+    scheme: HTTP
+  initialDelaySeconds: 40
+  timeoutSeconds: 25
+  periodSeconds: 120
+  successThreshold: 1
+  failureThreshold: 3

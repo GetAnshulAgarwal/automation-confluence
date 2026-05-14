@@ -1,0 +1,145 @@
+image:
+  repository:  381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/liodata-webapi
+  tag: 1.0.29
+  
+extraEnvs:
+  - name: LIODATA_WEBAPI_CUSTOMERNAME
+    value: "LTA"
+  - name: NATS_URL
+    value: "nats.fms-uat.itfs.lta.gov.sg"
+  - name: NATS_PORT
+    value: "4222"
+  - name: LIODATA_WEBAPI_SUBJECT
+    value: "LioData.Nats.Messaging.UI.QueueBased_LTA"
+  - name: LLIODATA_WEBAPI_QUEUE
+    value: "QueueConnectorNew_LTA"
+  - name: LIODATA_WEBAPI_SUBJECTCHILD
+    value: "LioData.Nats.Messaging.UI.QueueChildBased_LTA"
+  - name: LIODATA_WEBAPI_QUEUECHILD
+    value: "QueueChildConnectorNew_LTA"
+  - name: LIODATA_WEBAPI_VERSION
+    value: "000DF300"
+  - name: RDS_PRODSERVICE_NAME
+    value: "LIODATA"
+  - name: RDS_ADMINSERVICENAME
+    value: "LIODATA"
+  - name: RDS_ENDPOINT
+    value: "uat-app-aurora-oracle-oracledb.cjyyk4aoo8q7.ap-southeast-1.rds.amazonaws.com"
+  - name: RDS_PORT
+    value: "1581"
+  - name: RDS_PDB_NAME
+    value: "LIODATA,LIODATA"
+  - name: LIODATA_API_LINUXENABLE
+    value: "true"
+  - name: LIODATA_WEBAPI_OSMPORT
+    value: "8102"
+  - name: LIODATA_WEBAPI_OSMSERVER
+    value: "https://liodata-routing.fms-uat.itfs.lta.gov.sg"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: ALLOWED_HOST
+    value: "https://liodata-webclient.fms-uat.itfs.lta.gov.sg"
+  - name: KEYCLOAK_SERVER_REALM_URL
+    value: "https://keycloak.fms-uat.itfs.lta.gov.sg/realms/LIO"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "liodata-webapi"
+  - name: KEYCLOAK_AUTHENTICATION
+    value: "true"
+  - name: KEYCLOAK_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KEYCLOAK_CLIENT_SECRET
+  - name: KEYCLOAK_TOKEN_URL
+    value: "https://keycloak.fms-uat.itfs.lta.gov.sg/realms/LIO/protocol/openid-connect/token"
+  - name: KEYCLOAK_LOGOUT_URL
+    value: "https://keycloak.fms-uat.itfs.lta.gov.sg/realms/LIO/protocol/openid-connect/logout"
+  - name: KEYCLOAK_USER_INFO_URL
+    value: "https://keycloak.fms-uat.itfs.lta.gov.sg/realms/LIO/protocol/openid-connect/userinfo"
+  - name: LIODATA_CONSUMER_LIODATAALERTS
+    value: "CustomerName_PROD_CLOUD.LioData.Alerts.Alert"
+  - name: LIODATA_LOGGINGTYPE
+    value: "all"
+  - name: RDS_LIODATA_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LIODATA_PASSWORD
+  - name: LIODATA_RELOAD_SUBJECT
+    value: LioData.Nats.Messaging.UI.ReloadSubject_LTA
+  - name: LIODATA_WEBAPI_VDVIMPORTPATH
+    value: "/app/liodv/fsx-vol/manual_import_vdv_452"
+  - name: LIODATA_WEBAPI_DOWNLOADUPLOAD
+    value: "false"
+  - name: OPENTELEMETRY_COLLECTOR_URL
+    value: "http://opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+
+extraDeploy:
+ - apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata:
+     name: liodata-webapi-liodv-fsx-pvc
+   spec:
+     accessModes:
+       - ReadWriteMany
+     resources:
+       requests:
+         storage: 50Gi
+     storageClassName: ""
+     volumeName: liodata-webapi-liodv-fsx-pv
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/healthcheck-path: "/healthcheck/readiness/"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: liodata-webapi.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - liodata-webapi.fms-uat.itfs.lta.gov.sg
+      secretName: liodata-webapi-tls
+
+resources:
+  limits:
+    cpu: "2"
+    memory: 2Gi
+  requests:
+    cpu: 128m
+    memory: 1Gi
+
+serviceAccount:
+  create: true
+  name: liodata-webapi-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/UAT-IAMR-EKS-POD-IDENTITY-LIODATA
+
+extraVolumes:
+  - name: fsx-data
+    persistentVolumeClaim:
+      claimName: liodata-webapi-liodv-fsx-pvc
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "liodata-webapi-spc"
+        
+extraVolumeMounts:
+  - name: fsx-data
+    mountPath: "/app/liodv"
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true

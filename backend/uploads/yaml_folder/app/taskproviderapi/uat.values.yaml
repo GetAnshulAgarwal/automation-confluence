@@ -1,0 +1,70 @@
+extraEnvs:
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: CASSANDRA_IP
+    value: ""
+  - name: CASSANDRA_HOSTNAME
+    value: "cassandra.ap-southeast-1.amazonaws.com"
+  - name: CASSANDRA_PORT
+    value: "9142"
+  - name: CASSANDRA_DATACENTER
+    value: "ap-southeast-1"
+  - name: CASSANDRA_DB_TYPE
+    value: "amazon_keyspace"
+  - name: CASSANDRA_KEYSPACE
+    value: "UAT_APP_KEYSPACE"
+  - name: CASSANDRA_USERNAME
+    value: "UAT-IAMU-KEYSPACE-at-381491900351"
+  - name: CASSANDRA_PASSWORD
+    value: "qkyhWbeN523rLG7xw5pt5h7atgP1j1JH2yucDJ0opuUiYmUAFUvP/FVlPro="
+  - name: PROPERTY_TASKPROVIDER_LOG_CONFIG
+    value: "/app/TaskProviderService/taskprovider-config/taskprovider-log4j2.xml"
+  - name: NATS_ALERT_SUBJECT 
+    value: NTA_PROD_CLOUD.AIML.Alerts.Alert 
+  - name: POD_NAME 
+    valueFrom: 
+      fieldRef: 
+        fieldPath: metadata.name 
+  - name: POD_NAMESPACE 
+    value: taskproviderapi
+  - name: NATS_SERVER
+    value: "nats://nats.fms-uat.itfs.lta.gov.sg:4222"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+  - name: MEMORY_THRESHOLD_MB 
+    value: '600' 
+  - name: HEARTBEAT_THRESHOLD_MINS 
+    value: '10'  
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/success-codes: "200,302"
+    alb.ingress.kubernetes.io/healthcheck-path: "/readyz"
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: taskproviderapi.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - taskproviderapi.fms-uat.itfs.lta.gov.sg
+      secretName: taskproviderapi-tls
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 2Gi
+  requests:
+    cpu: 128m
+    memory: 1Gi

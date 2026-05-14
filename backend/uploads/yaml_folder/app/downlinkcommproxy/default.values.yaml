@@ -1,0 +1,43 @@
+replicaCount: 1
+
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/downlinkcommproxy
+  tag: 2.4.1
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 80
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 512Mi
+  requests:
+    cpu: 128m
+    memory: 150Mi
+probeType: exec
+
+livenessProbe:
+  exec:
+    command:
+      - sh
+      - -c
+      - "find /app/healthcheck.liveness -mmin -1"
+  initialDelaySeconds: 10
+  periodSeconds: 20
+
+readinessProbe:
+  exec:
+    command:
+      - sh
+      - -c
+      - "find /app/healthcheck.readiness -mmin -1"
+  initialDelaySeconds: 10
+  periodSeconds: 20
+
+# nodeSelector:
+#   karpenter.sh/nodepool: application-node-pool

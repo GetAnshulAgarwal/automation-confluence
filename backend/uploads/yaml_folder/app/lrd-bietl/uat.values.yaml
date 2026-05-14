@@ -1,0 +1,153 @@
+extraEnvs:
+  - name: BIETL_SID
+    value: "LRD"
+  - name: BIETL_DATABASEMACHINEIP
+    value: "uat-app-aurora-oracle-oracledb.cjyyk4aoo8q7.ap-southeast-1.rds.amazonaws.com"
+  - name: BIETL_PORT
+    value: "1581"
+  - name: BIETL_NATS_URL
+    value: "nats.fms-uat.itfs.lta.gov.sg:4222"
+  - name: BIETL_LOGGING_MODE
+    value: "console"
+  - name: BIETL_LOGFILEPATH
+    value: "/san/LRDBI/BIETL/Exes/log"
+  - name: BIETL_BASEVEHICLEPATH
+    value: "/san/VehicleRecordings"
+  - name: BIETL_SAFSTREAMNAME
+    value: "SafFiles"
+  - name: BIETL_SAFSTAGINGSTATUSSUBJECT
+    value: "StagingStatus"
+  - name: BIETL_SAFFILEPATHSUBJECT
+    value: "SafFilePathSubject"
+  - name: BIETL_BIDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: BIETL_BIDB_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: BIETL_OPERATIONALDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: BIETL_STAGINGDB_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: BIETL_STAGINGDBUSER_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LRD_PASSWORD
+  - name: BIETL_NATS_SUBJECT
+    value: "StagingStatus"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: BIETL_DELETEFILESOFFSET
+    value: "5"
+  - name: BIETL_MOVEFILESTOBACKUP
+    value: "N" 
+  - name: BIETL_BACKUPFILESLOCATION
+    value: "/LRD_Backup/VehicleRecordings"
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace  
+  - name: ENABLE_LEADER_ELECTION
+    value: "true"
+  - name: BIETL_NATSALERTSUBJECT
+    value: "LRD.Alerts.Alert"
+
+extraDeploy:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: leader-election-role
+      namespace: lrd-bietl
+    rules:
+      - apiGroups: ["coordination.k8s.io"]
+        resources: ["leases"]
+        verbs: ["get","list","watch","create","update","patch"]
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: leader-election-binding
+      namespace: lrd-bietl
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: leader-election-role
+    subjects:
+      - kind: ServiceAccount
+        name: lrd-bietl-sa
+        namespace: lrd-bietl
+        
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: lrd-bietl-san-fsx-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: ""
+      volumeName: lrd-bietl-san-fsx-pv
+
+serviceAccount:
+  create: true
+  name: lrd-bietl-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/UAT-IAMR-EKS-POD-IDENTITY-LRD
+
+extraVolumes:
+  - name: fsx-data
+    persistentVolumeClaim:
+      claimName: lrd-bietl-san-fsx-pvc
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "lrd-bietl-spc"
+
+extraVolumeMounts:
+  - name: fsx-data
+    mountPath: "/san"
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/healthcheck-path: "/readyz"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: lrd-bietl.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - lrd-bietl.fms-uat.itfs.lta.gov.sg
+      secretName: lrd-bietl-tls

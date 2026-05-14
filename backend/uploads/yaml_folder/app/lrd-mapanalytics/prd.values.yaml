@@ -1,0 +1,132 @@
+image:
+  repository:  654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/lrd-mapanalytics
+
+extraEnvs:
+  - name: UPDATE_GPS_CRON
+    value: "0 0 3 * * *"
+  - name: NATS_SERVER
+    value: "nats://nats.fms.itfs.lta.gov.sg:4222"
+  - name: NATS_SUBJECT
+    value: "CacheUpdated"
+  - name: NATS_STREAMNAME
+    value: "CacheUpdatedStream"
+  - name: NATS_REPLICAS
+    value: "3" 
+  - name: MTV_LOGGING_MODE
+    value: "console"
+  - name: MTV_JDBC_URL
+    value: "jdbc:oracle:thin:@prd-app-oracle-oracledb.cha4uqgeogfu.ap-southeast-1.rds.amazonaws.com:1581/LRD"
+  - name: MTV_JDBC_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_BIDB_PASSWORD
+  - name: LOGIN_SOURCE_NAME
+    value: "keycloak"
+  - name: ROUTEGEOMETRY_URI
+    value: "https://lrd-cache.fms.itfs.lta.gov.sg/v1/getRouteGeometry"
+  - name: CONGESTIONDATALIVE_URI
+    value: "https://rtcongestionapi.fms.itfs.lta.gov.sg/getLiveCongestionData"
+  - name: CONGESTIONDATAREPLAY_URI
+    value: "https://rtcongestionapi.fms.itfs.lta.gov.sg/getPastCongestionData"
+  - name: AREASUMMARY_URI
+    value: "https://rtcongestionapi.fms.itfs.lta.gov.sg/getRouteHourWiseSpeed"
+  - name: VEHICLEDATALIVE_URI
+    value: "https://rtvehicleposition.fms.itfs.lta.gov.sg/get-live-data"
+  - name: VEHICLEPOSITIONREPLAY_URI
+    value: "https://rtvehicleposition.fms.itfs.lta.gov.sg/get-history-data"  
+  - name: WEBCLIENT_URL
+    value: "https://bi-analytics-web.fms.itfs.lta.gov.sg"
+  - name: KEYCLOAK_ISSUER_URI_HTTPS
+    value: "https://keycloak.fms.itfs.lta.gov.sg/realms/LIO"
+  - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_ID
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: MTV_CLIENT_ID
+  - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: MTV_CLIENT_SECRET
+  - name: SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KEYCLOAK_REDIRECT_URI
+    value: "https://bi-analytics-web.fms.itfs.lta.gov.sg/lrd-mapanalytics/login/oauth2/code/MTV"
+  - name: SPRING_SECURITY_OAUTH2_CLIENT_PROVIDER_KEYCLOAK_ISSUER_URI
+    value: "https://keycloak.fms.itfs.lta.gov.sg/realms/LIO"
+  - name: INTROSPECTION_ENDPOINT
+    value: "https://keycloak.fms.itfs.lta.gov.sg/realms/LIO/protocol/openid-connect/token/introspect"
+  - name: TOKEN_ENDPOINT
+    value: "https://keycloak.fms.itfs.lta.gov.sg/realms/LIO/protocol/openid-connect/token"
+  - name: LOGOUT_ENDPOINT
+    value: "https://keycloak.fms.itfs.lta.gov.sg/realms/LIO/protocol/openid-connect/logout"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: VEHICLEPREDICTION_URI
+    value: ""
+  - name: OTLP_MAP_SERVICE_NAME
+    value: "LRD_MTV_MAPANALYTICS"
+  - name: PROPERTY_OTLP_COLLECTOR_URL
+    value: "http://opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+  - name: MTV_OTELENABLED
+    value: "1"
+  - name: "THREAD_STALL_THRESHOLD_SECS"
+    value: "600"
+  - name: "NATS_ALERT_INTERVAL_MINUTES"
+    value: "10"
+  - name: NATS_ALERT_SUBJECT
+    value: "LRD.Alerts.Alert"
+  - name: MEMORY_THRESHOLD_MB
+    value: "4700"
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace 
+  - name: KEYCLOAK_BASE_URL
+    value: "https://keycloak.fms.itfs.lta.gov.sg/realms/LIO"
+    
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: "/ready"
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: lrd-mapanalytics.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - lrd-mapanalytics.fms.itfs.lta.gov.sg
+      secretName: lrd-mapanalytics-tls
+
+serviceAccount:
+  create: true
+  name: lrd-mapanalytics-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-LRD
+
+extraVolumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "lrd-mapanalytics-spc"
+    
+extraVolumeMounts:
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true

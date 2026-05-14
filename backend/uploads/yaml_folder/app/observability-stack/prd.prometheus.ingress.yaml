@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-app-ingress
+  namespace: observability
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-08b5165e42765ab7d
+    alb.ingress.kubernetes.io/healthcheck-path: "/-/healthy"
+    alb.ingress.kubernetes.io/healthcheck-port: "9090"
+    alb.ingress.kubernetes.io/success-codes: "200"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+spec:
+  ingressClassName: alb-internal-app
+  rules:
+    - host: prometheus-app.fms.itfs.lta.gov.sg
+      http:
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: kps-prometheus
+                port:
+                  name: http-web
+  tls:
+    - hosts:
+        - prometheus-app.fms.itfs.lta.gov.sg
+      secretName: prometheus-app-tls

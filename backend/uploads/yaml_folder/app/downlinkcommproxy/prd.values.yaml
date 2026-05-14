@@ -1,0 +1,13 @@
+image:
+  repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/downlinkcommproxy
+
+extraEnvs:
+  - name: TOPIC_PREFIX
+    value: "lio.env0"
+  - name: NATS_ENDPOINT_URL
+    value: "nats://nats.fms.itfs.lta.gov.sg"
+  - name: TZ
+    value: "Asia/Singapore"  
+
+ingress:
+  enabled: false

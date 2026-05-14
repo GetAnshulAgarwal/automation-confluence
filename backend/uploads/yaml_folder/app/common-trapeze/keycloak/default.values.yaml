@@ -1,0 +1,39 @@
+storageClass: "gp3-retain"
+
+postgresql:
+  enabled: false # disable local postgresql
+
+readinessProbe: 
+  httpGet: 
+    path: /realms/master 
+    port: 8080 
+  initialDelaySeconds: 60 
+  timeoutSeconds: 5 
+  periodSeconds: 10 
+  failureThreshold: 3 
+
+auth:
+  adminUser: admin
+  adminPassword: admin
+  managementUser: manager
+  managementPassword: manager
+
+global:
+  image:
+    repository:
+      postgresExporter: bitnami/postgres-exporter
+      keycloakConfigCli: bitnami/keycloak-config-cli
+      postgresql: bitnami/postgresql
+      keycloak: bitnami/keycloak
+      osShell: bitnami/os-shell
+  chart:
+    repository:
+      common: registry-1.docker.io/bitnamicharts/common
+      postgresql: registry-1.docker.io/bitnamicharts/postgresql
+      keycloak: registry-1.docker.io/bitnamicharts/keycloak
+  global:
+    security:
+      allowInsecureImages: true
+
+# nodeSelector:
+#   karpenter.sh/nodepool: application-node-pool

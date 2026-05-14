@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repository: liodata-routing
+  tag: 1.0.3
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 8102
+
+resources:
+  limits:
+    cpu: "2"
+    memory: 8Gi
+  requests:
+    cpu: 128m
+    memory: 150Mi
+
+livenessProbe: null
+
+readinessProbe: null

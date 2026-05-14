@@ -1,0 +1,99 @@
+extraEnvs:
+  - name: LIO_ENVIRONMENT
+    value: Production
+  - name: Keycloak__scheduleService
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KEYCLOAK_CLIENT_SECRET
+  - name: IDENTITYPROVIDER
+    value: Keycloak
+  - name: KEYCLOAK__AUTHORITYURL
+    value: https://keycloak.fms-uat.itfs.lta.gov.sg/
+  - name: KEYCLOAK__REALM
+    value: LIO
+  - name: Endpoints__ConfigApiUrl
+    value: https://config-api.fms-uat.itfs.lta.gov.sg
+  - name: DATABASE__MONGO__HOST
+    value: "uat-app-mongo-mongo1.fms-uat.itfs.lta.gov.sg:27817,uat-app-mongo-mongo2.fms-uat.itfs.lta.gov.sg:27817,uat-app-mongo-mongo3.fms-uat.itfs.lta.gov.sg:27817"
+  - name: DATABASE__MONGO__USER
+    value: "lio"
+  - name: DATABASE__MONGO__PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: MONGO_DB_PASS
+  - name: DATABASE__MONGO__PARAMETERS
+    value: "authSource=admin&authMechanism=SCRAM-SHA-256"
+  - name: TZ
+    value: "Asia/Singapore"  
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/healthcheck-path: /health/readiness
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+  hosts:
+    - host: timetable-api.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: timetable-api-dotnet
+              port:
+                number: 19010
+  tls:
+    - hosts:
+        - timetable-api.fms-uat.itfs.lta.gov.sg
+      secretName: timetable-api-tls
+
+grpcIngress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/backend-protocol-version: HTTP2
+    alb.ingress.kubernetes.io/load-balancer-attributes: routing.http2.enabled=true
+    alb.ingress.kubernetes.io/healthcheck-path: "/health/readiness"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+  hosts:
+    - host: timetable-api-grpc.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+          backend:
+            service:
+              name: timetable-api-dotnet-grpc
+              port:
+                number: 9010
+  tls:
+    - hosts:
+        - timetable-api-grpc.fms-uat.itfs.lta.gov.sg
+      secretName: timetable-api-grpc-tls
+
+resources:
+  limits:
+    cpu: 1024m
+    memory: 2Gi
+  requests:
+    cpu: 128m
+    memory: 1Gi
+
+serviceAccount:
+  create: true
+  name: timetable-api-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/UAT-IAMR-EKS-POD-IDENTITY-TIMETABLE-API

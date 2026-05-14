@@ -1,0 +1,47 @@
+config:
+  exporters:
+    otlphttp/all:
+      endpoint: https://opentelemetry-man.fms.itfs.lta.gov.sg
+      tls:
+        insecure: false
+        insecure_skip_verify: true
+      retry_on_failure:
+        enabled: true
+        initial_interval: 5s
+        max_interval: 30s
+        max_elapsed_time: 36000s
+      sending_queue:
+        enabled: true
+        num_consumers: 10
+        queue_size: 5000
+  processors:
+    batch:
+      send_batch_size: 1000
+      send_batch_max_size: 2000
+      timeout: 10s
+ingress:
+  enabled: true
+  ingressClassName: alb-internal-app
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-08b5165e42765ab7d
+    alb.ingress.kubernetes.io/manage-backend-security-group-rules: "false"
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: "/"
+    alb.ingress.kubernetes.io/healthcheck-port: "13133"
+    alb.ingress.kubernetes.io/success-codes: "200,302,404"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+  hosts:
+    - host: opentelemetry-app.fms.itfs.lta.gov.sg
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 4318
+  tls:
+    - secretName: opentelemetry-app-tls
+      hosts:
+        - opentelemetry-app.fms.itfs.lta.gov.sg

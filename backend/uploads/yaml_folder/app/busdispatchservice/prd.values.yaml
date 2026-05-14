@@ -1,0 +1,85 @@
+image:
+  repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/busdispatchservice
+
+extraEnvs:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: LIO_ENVIRONMENT
+    value: lta_prod_cloud
+  - name: IDENTITYPROVIDER
+    value: Keycloak
+  - name: Keycloak__AuthorityUrl
+    value: "https://keycloak.fms.itfs.lta.gov.sg"
+  - name: KEYCLOAK__REALM
+    value: LIO
+  - name: Keycloak__busDispatchService
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KEYCLOAK_CLIENT_SECRET
+  - name: Endpoints__ConfigApiUrl
+    value: "https://config-api.fms.itfs.lta.gov.sg"
+  - name: LioConfiguration__useHttps
+    value: "0"
+  - name: DATABASE__MONGO__HOST
+    value: "prd-app-mongo-mongo1.fms.itfs.lta.gov.sg:27817,prd-app-mongo-mongo2.fms.itfs.lta.gov.sg:27817,prd-app-mongo-mongo3.fms.itfs.lta.gov.sg:27817"
+  - name: DATABASE__MONGO__USER
+    value: "lio"
+  - name: DATABASE__MONGO__PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: MONGO_DB_PASS
+  - name: DATABASE__MONGO__PARAMETERS
+    value: "authSource=admin&authMechanism=SCRAM-SHA-256"
+  - name: TZ
+    value: "Asia/Singapore"
+
+ingress:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 2Gi
+  requests:
+    cpu: 128m
+    memory: 1Gi
+
+serviceAccount:
+  create: true
+  name: busdispatchservice-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-BUSDISPATCHSERVICE
+
+extraDeploy:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: cc-busdispatchservice-fsx-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: ""
+      volumeName: cc-busdispatchservice-fsx-pv
+
+extraVolumes:
+  - name: fsx-data
+    persistentVolumeClaim:
+      claimName: cc-busdispatchservice-fsx-pvc
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "busdispatchservice-spc"
+
+extraVolumeMounts:
+  - name: fsx-data
+    mountPath: "/busdispatch"
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true

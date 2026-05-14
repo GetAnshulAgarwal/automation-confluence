@@ -1,0 +1,67 @@
+replicaCount: 1
+
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/eventservice
+  tag: 2.13.6
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8100
+  extraPorts:
+    - port: 6567
+      name: grpc
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+extraContainerPorts:
+  - name: grpc
+    containerPort: 6567
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 4Gi
+  requests:
+    cpu: 128m
+    memory: 1Gi
+
+livenessProbe:
+  httpGet:
+    path: "/actuator/health/liveness"
+    port: 8100
+    host: localhost
+    scheme: HTTP
+  initialDelaySeconds: 150
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: "/actuator/health/readiness"
+    port: 8100
+    host: localhost
+    scheme: HTTP
+  initialDelaySeconds: 120
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+extraVolumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "eventservice-spc"
+extraVolumeMounts:
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true
+
+nodeSelector:
+  karpenter.sh/nodepool: application-node-pool

@@ -1,0 +1,41 @@
+environments:
+  uat:
+    values:
+      - ecrRegistry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+  prd:
+    values:
+      - ecrRegistry: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com
+---
+bases:
+  - ../../../global.yaml
+  - ../../app.yaml
+
+releases:
+  # https://github.com/kubernetes-sigs/aws-fsx-openzfs-csi-driver
+  - name: aws-fsx-openzfs-csi-driver
+    installed: true
+    namespace: kube-system
+    chart: aws-fsx-openzfs-csi-driver/aws-fsx-openzfs-csi-driver
+    version: 1.2.0
+    values:
+      - default.values.yaml
+      - {{ .Environment.Name }}.values.yaml
+    hooks:
+      - events: ["cleanup"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "{{ .Environment.Name }}.dynamic.01.storageclass.yaml"
+          - "--context"
+          - "{{`{{.Environment.KubeContext}}`}}"
+      - events: ["cleanup"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "{{ .Environment.Name }}.static.02.pv.yaml"
+          - "--context"
+          - "{{`{{.Environment.KubeContext}}`}}"

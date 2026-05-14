@@ -1,0 +1,39 @@
+replicaCount: 1
+
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/realtimeapp
+  tag: 1.8.7
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 5000
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 512Mi
+  requests:
+    cpu: 128m
+    memory: 150Mi
+
+livenessProbe:
+  httpGet:
+    path: "/healthz"
+    port: 5000
+    scheme: HTTP
+  initialDelaySeconds: 60
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: "/readyz"
+    port: 5000
+    scheme: HTTP
+  initialDelaySeconds: 60
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3

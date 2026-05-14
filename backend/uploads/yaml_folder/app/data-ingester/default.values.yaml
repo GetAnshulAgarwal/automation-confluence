@@ -1,0 +1,39 @@
+replicaCount: 1
+
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/data-ingester
+  tag: 1.0.5
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8181
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 512Mi
+  requests:
+    cpu: 128m
+    memory: 150Mi
+
+livenessProbe: null
+  # httpGet:
+  #   path: "/healthz"
+  #   port: 8181
+  #   scheme: HTTP
+  # initialDelaySeconds: 60
+  # timeoutSeconds: 5
+  # periodSeconds: 5
+  # successThreshold: 1
+  # failureThreshold: 3
+
+readinessProbe: null
+  # httpGet:
+  #   path: "/readyz"
+  #   port: 8181
+  #   scheme: HTTP
+  # initialDelaySeconds: 60
+  # timeoutSeconds: 5
+  # periodSeconds: 60
+  # successThreshold: 1
+  # failureThreshold: 3

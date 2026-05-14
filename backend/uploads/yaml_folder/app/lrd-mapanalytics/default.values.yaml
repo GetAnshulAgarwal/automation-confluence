@@ -1,0 +1,47 @@
+replicaCount: 2
+
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/lrd-mapanalytics
+  tag: 1.2.48
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8184
+
+resources:
+  limits:
+    cpu: 1
+    memory: 5Gi
+  requests:
+    cpu: 256m
+    memory: 256Mi
+
+livenessProbe:
+  httpGet:
+    path: "/live"
+    port: 8184
+    host: localhost
+    scheme: HTTP
+  initialDelaySeconds: 150
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: "/ready"
+    port: 8184
+    host: localhost
+    scheme: HTTP
+  initialDelaySeconds: 150
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70

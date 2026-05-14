@@ -1,0 +1,63 @@
+extraEnvs:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: CONFIG_API_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: CONFIG_API_PASSWORD
+  - name: DATABASE__CONNECTIONSTRING
+    value: "Host=uat-app-aurora-pgsql-pgsqldb.cluster-cjyyk4aoo8q7.ap-southeast-1.rds.amazonaws.com; Port=5482; Database=config_api; User ID=config_api_user; Password=$(CONFIG_API_PASSWORD); Pooling=true;"
+  - name: IDENTITYPROVIDER
+    value: Keycloak
+  - name: KEYCLOAK__AUTHORITYURL
+    value: https://keycloak.fms-uat.itfs.lta.gov.sg
+  - name: KEYCLOAK__REALM
+    value: LIO
+  - name: IDENTITYSERVER__AUTHORITYURL
+    value: http://host.docker.internal:59419
+  - name: KEYCLOAK__CONFIGURATIONSERVICE
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KEYCLOAK_CLIENT_SECRET
+  - name: EXPLICITENVNAME
+    value: lta_uat_cloud
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: Messaging__Nats__Url
+    value: nats://nats.fms-uat.itfs.lta.gov.sg:4222
+  - name: Messaging__Nats__TopicPrefix
+    value: lio.env0
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  hosts:
+    - host: config-api.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - config-api.fms-uat.itfs.lta.gov.sg
+      secretName: config-api-tls
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/success-codes: "200,302"
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-0e94cb42970e1c3d9
+    alb.ingress.kubernetes.io/healthcheck-path: "/health/readiness"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
+    
+serviceAccount:
+  create: true
+  name: config-api-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/UAT-IAMR-EKS-POD-IDENTITY-API

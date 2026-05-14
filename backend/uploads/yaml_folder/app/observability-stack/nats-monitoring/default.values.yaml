@@ -1,0 +1,32 @@
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/prometheus-nats-exporter
+  tag: 0.19.1
+  pullPolicy: IfNotPresent
+
+serviceMonitor:
+  enabled: true
+  additionalLabels: 
+    release: "kps"
+  interval: 30s
+  scrapeTimeout: 10s
+  path: /metrics
+  port: http
+
+config:
+  nats:
+    service: nats-headless
+    namespace: nats
+    port: 8222
+  metrics:
+    http_port: 7777
+    accstatz: true
+    channelz: false
+    connz: true
+    connz_detailed: true
+    jsz: true
+    gatewayz: true
+    leafz: true
+    routez: true
+    serverz: false
+    subz: true
+    varz: true

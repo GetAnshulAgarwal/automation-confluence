@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOCX / PDF vs YAML Comparator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>📄 DOCX / PDF vs YAML Comparator</h1>
+    <p class="subtitle">Upload your document and app folder to find mismatched environment variables</p>
+
+    <div class="card">
+
+      <div class="field">
+        <label>📎 Upload PDF or DOCX</label>
+        <input type="file" id="docFile" accept=".pdf,.docx">
+        <span class="hint">Document containing environment variable tables</span>
+      </div>
+
+      <div class="field">
+        <label>📁 Upload App Folder</label>
+        <input type="file" id="folderInput" webkitdirectory directory multiple>
+        <span class="hint">Folder containing subfolders with prd.values.yaml / uat.values.yaml</span>
+      </div>
+
+      <button id="compareBtn">🔍 Compare & Download Excel</button>
+
+      <div id="status"></div>
+
+    </div>
+
+    <div class="legend">
+      <h3>Excel Color Legend</h3>
+      <div class="legend-items">
+        <div class="legend-item">
+          <span class="dot red"></span>
+          <span><strong>NOT_FOUND</strong> — Key missing in YAML entirely</span>
+        </div>
+        <div class="legend-item">
+          <span class="dot orange"></span>
+          <span><strong>VALUE_MISMATCH</strong> — Key found but value differs</span>
+        </div>
+      </div>
+      <p class="legend-note">✅ MATCHED and FOUND rows are excluded from the Excel (no issues)</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

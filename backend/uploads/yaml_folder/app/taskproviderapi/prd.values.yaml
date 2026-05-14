@@ -1,0 +1,130 @@
+image:
+  repository:  654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/taskproviderapi
+  tag: 2.3.3
+
+extraEnvs:
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: CASSANDRA_HOSTNAME
+    value: "cassandra.ap-southeast-1.amazonaws.com"
+  - name: CASSANDRA_PORT
+    value: "9142"
+  - name: CASSANDRA_DATACENTER
+    value: "ap-southeast-1"
+  - name: CASSANDRA_DB_TYPE
+    value: "amazon_keyspace"
+  - name: CASSANDRA_KEYSPACE
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: CASSANDRA_KEYSPACE
+  - name: CASSANDRA_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: CASSANDRA_USERNAME
+  - name: CASSANDRA_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: CASSANDRA_PASSWORD
+  - name: PROPERTY_TASKPROVIDER_LOG_CONFIG
+    value: "/app/TaskProviderService/taskprovider-config/taskprovider-log4j2.xml"
+  - name: NATS_SERVER
+    value: "nats://nats.fms.itfs.lta.gov.sg:4222"
+  - name: NATS_ALERT_SUBJECT
+    value: "AIML.Alerts.Alert"
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+  - name: OTEL_SERVICE_NAME
+    value: "taskproviderapi_basemodel"
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://opentelemetry-collector.opentelemetry.svc.cluster.local:4318"
+  - name: MEMORY_THRESHOLD_MB
+    value: "1800"
+  - name: HEARTBEAT_THRESHOLD_MINS
+    value: "10"
+  - name: DEFAULT_LOG_LEVEL
+    value: "INFO"
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/success-codes: "200,302"
+    alb.ingress.kubernetes.io/healthcheck-path: "/readyz"
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: taskproviderapi.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - taskproviderapi.fms.itfs.lta.gov.sg
+      secretName: taskproviderapi-tls
+
+serviceAccount:
+  create: true
+  name: taskproviderapi-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-TASKPROVIDERAPI
+
+extraDeploy:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: leader-election-role
+      namespace: taskproviderapi
+    rules:
+      - apiGroups: ["coordination.k8s.io"]
+        resources: ["leases"]
+        verbs: ["get","list","watch","create","update","patch"]
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: leader-election-binding
+      namespace: taskproviderapi
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: leader-election-role
+    subjects:
+      - kind: ServiceAccount
+        name: taskproviderapi-sa
+        namespace: taskproviderapi
+
+extraVolumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "taskproviderapi-spc"
+
+extraVolumeMounts:
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 2Gi
+  requests:
+    cpu: 128m
+    memory: 1Gi

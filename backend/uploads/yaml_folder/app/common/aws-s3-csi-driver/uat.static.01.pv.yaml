@@ -1,0 +1,164 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-safparser-san-s3-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  mountOptions:
+    - allow-delete
+    - allow-overwrite 
+    - allow-other
+    - region ap-southeast-1
+  csi:
+    driver: s3.csi.aws.com
+    volumeHandle: s3-csi-driver-volume-safparser
+    volumeAttributes:
+      bucketName: uat-app-bk-gut-bisaf
+  # region: eu-west-1               # Optional explicit region (driver can infer)
+  # mountOptions: uid=0,gid=0       # Example of additional mount options if supported
+  # NOTE:
+  #  - Do not start prefix with a leading '/'
+  #  - Leave a trailing '/' for directory semantics
+  #  - Ensure IAM policy allows needed S3 actions on arn:aws:s3:::lrd-backup-dev/SAF/*
+ 
+ # lrd-fsxtos3 s3 pv 
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-fsxtos3-voicecall-s3-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  mountOptions:
+    - allow-delete
+    - allow-overwrite 
+    - allow-other
+    - region ap-southeast-1
+  csi:
+    driver: s3.csi.aws.com
+    volumeHandle: s3-csi-driver-volume-fsxtos3
+    volumeAttributes:
+      bucketName: uat-app-bk-gut-bisaf
+
+# lrd-fsxtos3 s3 pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-fsxtos3-san-s3-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  mountOptions:
+    - allow-delete
+    - allow-overwrite 
+    - allow-other
+    - region ap-southeast-1
+  csi:
+    driver: s3.csi.aws.com
+    volumeHandle: s3-csi-driver-volume-lrd-export
+    volumeAttributes:
+      bucketName: uat-app-bk-gut-bisaf
+
+# lrd-export pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-export-san-s3-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  mountOptions:
+    - allow-delete
+    - allow-overwrite 
+    - allow-other
+    - region ap-southeast-1
+  csi:
+    driver: s3.csi.aws.com
+    volumeHandle: s3-csi-driver-volume-lrd-export
+    volumeAttributes:
+      bucketName: uat-app-bk-gut-bisaf
+
+# lrd-liodata pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-liodata-san-s3-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  mountOptions:
+    - allow-delete
+    - allow-overwrite 
+    - allow-other
+    - region ap-southeast-1
+  csi:
+    driver: s3.csi.aws.com
+    volumeHandle: s3-csi-driver-volume-lrd-liodata
+    volumeAttributes:
+      bucketName: uat-app-bk-gut-bisaf
+
+# ddm-backend pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ddm-backend-ddm-s3-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  mountOptions:
+    - allow-delete
+    - allow-overwrite 
+    - allow-other
+    - region ap-southeast-1
+  csi:
+    driver: s3.csi.aws.com
+    volumeHandle: s3-csi-driver-volume-ddm-backend
+    volumeAttributes:
+      bucketName: uat-app-bk-ddm
+
+# liodata-consumer pv
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: liodata-consumer-backup-s3-pv
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  mountOptions:
+    - allow-delete
+    - allow-overwrite 
+    - allow-other
+    - region ap-southeast-1
+  csi:
+    driver: s3.csi.aws.com
+    volumeHandle: s3-csi-driver-volume-liodata-consumer
+    volumeAttributes:
+      bucketName: uat-app-bk-export

@@ -1,0 +1,38 @@
+image:
+  repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/downlinkconnector
+
+extraEnvs:
+  - name: ENVIRONMENT_PREFIX
+    value: "lio.env0"
+  - name: NATS_ENDPOINT_URL
+    value: "nats://nats.fms.itfs.lta.gov.sg:4222"
+  - name: MQTT_ENDPOINT_HOST
+    value: "emqx.fms.itfs.lta.gov.sg"
+  - name: MQTT_ENDPOINT_PORT
+    value: "8883"
+  - name: OTLP_ENDPOINT_URL
+    value: "http://localhost:4317"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: MESSAGING__MQTT__WITHTLS
+    value: "true"
+  - name: MESSAGING__MQTT__PEMCERTPATH
+    value: "/mnt/certs/PRD-EMQX-DOWNLINK-CLIENT-PEM"
+  - name: MESSAGING__MQTT__KEYCERTPATH
+    value: "/mnt/certs/PRD-EMQX-DOWNLINK-CLIENT-KEY"
+  - name: MESSAGING__MQTT__CACERTPATH
+    value: "/mnt/certs/PRD-EMQX-DOWNLINK-CLIENT-PEM"
+  - name: MESSAGING__MQTT__DISABLECERTIFICATEVALIDATION
+    value: "false"
+
+ingress:
+  enabled: false
+
+serviceAccount:
+  create: true
+  name: downlinkconnector-sa
+  namespace: downlinkconnector
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-DOWNLINKCONNECTOR
+    eks.amazonaws.com/sts-regional-endpoints: "true"
+    eks.amazonaws.com/token-expiration: "86400"

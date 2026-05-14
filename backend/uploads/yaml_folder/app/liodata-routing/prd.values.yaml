@@ -1,0 +1,58 @@
+image:
+  repository:  654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/liodata-routing
+
+extraEnvs:
+  - name: OSM_PORT
+    value: "8102"
+  - name: LIODATA_CUSTOMERNAME
+    value: "LTA"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: NAV_HOME
+    value: "/app"
+
+extraDeploy:
+ - apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata:
+     name: liodata-routing-liodv-fsx-pvc
+   spec:
+     accessModes:
+       - ReadWriteMany
+     resources:
+       requests:
+         storage: 50Gi
+     storageClassName: ""
+     volumeName: liodata-routing-liodv-fsx-pv
+
+extraVolumes:
+ - name: fsx-data
+   persistentVolumeClaim:
+     claimName: liodata-routing-liodv-fsx-pvc
+
+extraVolumeMounts:
+ - name: fsx-data
+   mountPath: "/app/liodv"
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-port: "traffic-port"
+    alb.ingress.kubernetes.io/success-codes: "200,404"
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+  hosts:
+    - host: liodata-routing.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - liodata-routing.fms.itfs.lta.gov.sg
+      secretName: liodata-routing-tls

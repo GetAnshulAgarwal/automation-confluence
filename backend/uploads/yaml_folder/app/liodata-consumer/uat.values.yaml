@@ -1,0 +1,171 @@
+image:
+  repository:  381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/liodata-consumer
+  tag: 1.0.32
+  
+extraEnvs:
+  - name: LIODATA_CONSUMER_CUSTOMERNAME
+    value: "LTA"
+  - name: NATS_URL
+    value: "nats.fms-uat.itfs.lta.gov.sg"
+  - name: NATS_PORT
+    value: "4222"
+  - name: LIODATA_CONSUMER_SUBJECT
+    value: "LioData.Nats.Messaging.UI.QueueBased_LTA"
+  - name: LLIODATA_CONSUMER_QUEUE
+    value: "QueueConnectorNew_LTA"
+  - name: LIODATA_CONSUMER_SUBJECTCHILD
+    value: "LioData.Nats.Messaging.UI.QueueChildBased_LTA"
+  - name: LIODATA_CONSUMER_QUEUECHILD
+    value: "QueueChildConnectorNew_LTA"
+  - name: LIODATA_CONSUMER_VERSION
+    value: "000DF300"
+  - name: RDS_PRODSERVICE_NAME
+    value: "LIODATA"
+  - name: RDS_ADMINSERVICENAME
+    value: "LIO-Data_prod_admin_ld03"
+  - name: RDS_ENDPOINT
+    value: "uat-app-aurora-oracle-oracledb.cjyyk4aoo8q7.ap-southeast-1.rds.amazonaws.com"
+  - name: RDS_PORT
+    value: "1581"
+  - name: RDS_PDB_NAME
+    value: "LIODATA,LIODATA"
+  - name: LIODATA_CONSUMER_OSMPORT
+    value: "8102"
+  - name: LIODATA_CONSUMER_OSMSERVER
+    value: "https://liodata-routing.fms-uat.itfs.lta.gov.sg"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: LIODATA_CONSUMER_LIODATAALERTS
+    value: "CustomerName_PROD_CLOUD.LioData.Alerts.Alert"
+  - name: LIODATA_LOGGINGTYPE
+    value: "all"
+  - name: RDS_LIODATA_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: LIODATA_PASSWORD
+  - name: LIODATA_RELOAD_SUBJECT
+    value: "LioData.Nats.Messaging.UI.ReloadSubject_NTA"
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace  
+  - name: BackUpPath
+    value: "/app/s3"
+  - name: ExportPath
+    value: "/app/s3"
+  - name: LIODATA_CONSUMER_AUTOVDVIMPORTPATH
+    value: /app/liodv/automatic_import_vdv_452
+
+extraDeploy:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: leader-election-role
+      namespace: liodata-consumer
+    rules:
+      - apiGroups: ["coordination.k8s.io"]
+        resources: ["leases"]
+        verbs: ["get","list","watch","create","update","patch"]
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: leader-election-binding
+      namespace: liodata-consumer
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: leader-election-role
+    subjects:
+      - kind: ServiceAccount
+        name: liodata-consumer-sa
+        namespace: liodata-consumer
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: liodata-consumer-liodv-fsx-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: ""
+      volumeName: liodata-consumer-liodv-fsx-pv
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: liodata-consumer-backup-s3-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: ""
+      volumeName: liodata-consumer-backup-s3-pv
+
+serviceAccount:
+  create: true
+  name: liodata-consumer-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/UAT-IAMR-EKS-POD-IDENTITY-LIODATA
+
+extraVolumes:
+ - name: fsx-data
+   persistentVolumeClaim:
+     claimName: liodata-consumer-liodv-fsx-pvc
+ - name: secrets-store-inline
+   csi:
+    driver: secrets-store.csi.k8s.io
+    readOnly: true
+    volumeAttributes:
+      secretProviderClass: "liodata-consumer-spc"
+ - name: s3-data
+   persistentVolumeClaim:
+     claimName: liodata-consumer-backup-s3-pvc
+
+extraVolumeMounts:
+ - name: fsx-data
+   mountPath: "/app/liodv"
+ - name: fsx-data
+   mountPath: "/app/liodvlocal"
+ - name: secrets-store-inline
+   mountPath: "/mnt/secrets-store"
+   readOnly: true
+ - name: s3-data
+   mountPath: "/app/s3"
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/healthcheck-path: "/healthcheck/readiness/"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+  hosts:
+    - host: liodata-consumer.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - liodata-consumer.fms-uat.itfs.lta.gov.sg
+      secretName: liodata-consumer-tls
+
+resources:
+  limits:
+    cpu: "5"
+    memory: 8Gi
+  requests:
+    cpu: 128m
+    memory: 8Gi

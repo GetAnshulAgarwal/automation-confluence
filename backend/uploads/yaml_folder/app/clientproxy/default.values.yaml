@@ -1,0 +1,66 @@
+replicaCount: 1
+
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/clientproxy
+  tag: 4.15.7
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 8080
+  extraPorts:
+    - port: 6569
+      name: grpc
+extraContainerPorts:
+  - name: grpc
+    containerPort: 6569
+
+resources:
+  limits:
+    cpu: 3000m
+    memory: 6Gi
+  requests:
+    cpu: 2048m
+    memory: 6Gi
+
+livenessProbe:
+  httpGet:
+    path: "/actuator/health/liveness"
+    port: 8080
+    host: localhost
+    scheme: HTTP
+  initialDelaySeconds: 600
+  timeoutSeconds: 10
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: "/actuator/health/readiness"
+    port: 8080
+    host: localhost
+    scheme: HTTP
+  initialDelaySeconds: 600
+  timeoutSeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 5
+
+extraVolumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "clientproxy-spc"
+extraVolumeMounts:
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 0    
+
+nodeSelector:
+  karpenter.sh/nodepool: application-node-pool

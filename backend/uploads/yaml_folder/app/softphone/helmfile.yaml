@@ -1,0 +1,32 @@
+environments:
+  uat:
+    values:
+      - ecrRegistry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+  prd:
+    values:
+      - ecrRegistry: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com
+---
+bases:
+  - ../../global.yaml
+  - ../app.yaml
+
+releases:
+  - name: softphone
+    installed: true
+    namespace: softphone
+    chart: ecr-uat-helm-charts/web
+    version: 0.1.7221
+    values:
+      - default.values.yaml
+      - {{ .Environment.Name }}.values.yaml
+      - {{toYaml .Values | nindent 8}}
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "namespace.yaml"
+          - "--context"
+          - "{{`{{.Environment.KubeContext}}`}}"

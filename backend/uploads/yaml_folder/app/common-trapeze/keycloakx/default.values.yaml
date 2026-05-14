@@ -1,0 +1,31 @@
+extraEnv: |
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: admin
+
+database:
+  vendor: postgres
+
+fullnameOverride: keycloakx
+
+args:
+  - "start"
+
+http:
+  relativePath: "/"
+
+proxy:
+  enabled: true
+  mode: xforwarded
+  http:
+    enabled: true
+
+cache:
+  stack: kubernetes
+
+health:
+  enabled: true
+
+metrics:
+  enabled: false

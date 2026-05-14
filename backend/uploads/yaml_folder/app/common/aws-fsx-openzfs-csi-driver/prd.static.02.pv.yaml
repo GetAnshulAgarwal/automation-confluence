@@ -1,0 +1,909 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: liodata-routing-liodv-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-01bc2dc25366f2b51" # liodata-liodv
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-LIODATA-LIODV"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: liodata-consumer-liodv-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-01bc2dc25366f2b51" # liodata-liodv
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-LIODATA-LIODV"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: liodata-webapi-liodv-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-01bc2dc25366f2b51" # liodata-liodv
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-LIODATA-LIODV"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-safparser-ddm-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-0ada5ae5c8f84fb83" # common ddm-ddm
+    volumeAttributes:
+      DNSName: "fs-03331107bb7381a67.fsx.ap-southeast-1.amazonaws.com" # fsx-eks-common
+      VolumePath: "/fsx/EKS-COMMON-DDM-DDM"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-vehicleparser-ddm-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-0ada5ae5c8f84fb83" # common ddm-ddm
+    volumeAttributes:
+      DNSName: "fs-03331107bb7381a67.fsx.ap-southeast-1.amazonaws.com" # fsx-eks-common
+      VolumePath: "/fsx/EKS-COMMON-DDM-DDM"
+      ResourceType: "volume"
+
+
+# ddm-import
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ddm-import-ddm-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-0ada5ae5c8f84fb83" # common ddm-ddm
+    volumeAttributes:
+      DNSName: "fs-03331107bb7381a67.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/EKS-COMMON-DDM-DDM"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ddm-import-liodv-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-01bc2dc25366f2b51" # liodata-liodv
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-LIODATA-LIODV"
+      ResourceType: "volume"
+
+# ddm-backend
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ddm-backend-ddm-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-0ada5ae5c8f84fb83" # common ddm-ddm
+    volumeAttributes:
+      DNSName: "fs-03331107bb7381a67.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/EKS-COMMON-DDM-DDM"
+      ResourceType: "volume"
+
+# ddm-message
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ddm-message-ddm-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-0ada5ae5c8f84fb83" # common ddm-ddm
+    volumeAttributes:
+      DNSName: "fs-03331107bb7381a67.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/EKS-COMMON-DDM-DDM"
+      ResourceType: "volume"
+
+# ddm-webapi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: ddm-webapi-ddm-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-0ada5ae5c8f84fb83" # common ddm-ddm
+    volumeAttributes:
+      DNSName: "fs-03331107bb7381a67.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/EKS-COMMON-DDM-DDM"
+      ResourceType: "volume"
+
+# lrd-san
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-export-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-ccfileupload-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-ccfilecopyandpublisher-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-liodata-liodv-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-01bc2dc25366f2b51" # liodata-liodv
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-LIODATA-LIODV"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-liodata-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-safparser-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-mtvapi-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-predictionparser-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-bietl-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-vehicleparser-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+#lrd-busdispatchdataentry
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-busdispatchdataentry-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+#lrd-busdispatchprocessing
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-busdispatchprocessing-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+#lrd-assetmanagement
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-assetmanagement-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+      
+# dwelltime
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dwelltime-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# drivingtime
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: drivingtime-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# psgexchange
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: psgexchange-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# linkprediction
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: linkprediction-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# psgprediction
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: psgprediction-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# rtprediction
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rtprediction-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# rtprocessor
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: rtprocessor-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# stoprediction
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: stopprediction-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# dataloading
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dataloading-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# weatherinsert
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: weatherinsert-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+# weatherupdate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: weatherupdate-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cc-busdispatchservice-fsx-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-05714aedd85a58a5b" # cc-busdispatchservice
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-BUSDISPATCH"
+      ResourceType: "volume"
+
+#lrd-fsxtos3
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-fsxtos3-recordings-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-0c2bd0199bed6c7ca"
+    volumeAttributes:
+      DNSName: "fs-03331107bb7381a67.fsx.ap-southeast-1.amazonaws.com" # fsx-eks-common
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-WEB-FSX-EKS-COMMON-LRD-ASTERISK-RECORDINGS"
+      ResourceType: "volume"
+
+# lrd-assetmanagementapi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lrd-assetmanagementapi-san-fsx-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  mountOptions:
+    - nfsvers=4.1
+    - rsize=1048576
+    - wsize=1048576
+    - timeo=600
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: fsx.openzfs.csi.aws.com
+    volumeHandle: "fsvol-052e0b4d22c9c90c4" # lrd-san
+    volumeAttributes:
+      DNSName: "fs-0ef940b26c1dd6f46.fsx.ap-southeast-1.amazonaws.com"
+      VolumePath: "/fsx/PRD-APP-INTRA-EKS-APP-APP-FSX-EKS-APP-LRD-SAN"
+      ResourceType: "volume"

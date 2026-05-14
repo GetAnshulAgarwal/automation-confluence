@@ -1,0 +1,49 @@
+environments:
+  uat:
+    values:
+      - ecrRegistry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+  prd:
+    values:
+      - ecrRegistry: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com
+---
+bases:
+  - ../../../global.yaml
+  - ../../app.yaml
+
+helmDefaults:
+  wait: false
+
+releases:
+# https://artifacthub.io/packages/helm/bitnami/keycloak
+  - name: keycloak
+    namespace: keycloak
+    chart: bitnami/keycloak
+    version: 19.3.2
+    # version: 24.5.2
+    values:
+      - default.values.yaml
+      - {{ .Environment.Name }}.values.yaml
+      - {{toYaml .Values | nindent 8}}
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "namespace.yaml"
+          - "--context"
+          - "{{`{{.Environment.KubeContext}}`}}"
+      - events: ["presync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "{{ .Environment.Name }}.secretClass.yaml"
+          - "--context"
+          - "{{`{{.Environment.KubeContext}}`}}"
+
+
+
+

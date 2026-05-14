@@ -1,0 +1,47 @@
+config:
+  exporters:
+    otlphttp/all:
+      endpoint: https://opentelemetry-man.fms-uat.itfs.lta.gov.sg
+      tls:
+        insecure: false
+        insecure_skip_verify: true
+      retry_on_failure:
+        enabled: true
+        initial_interval: 5s
+        max_interval: 30s
+        max_elapsed_time: 36000s
+      sending_queue:
+        enabled: true
+        num_consumers: 10
+        queue_size: 5000
+  processors:
+    batch:
+      send_batch_size: 1000
+      send_batch_max_size: 2000
+      timeout: 10s
+ingress:
+  enabled: true
+  ingressClassName: alb-internal-app
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-0e94cb42970e1c3d9
+    alb.ingress.kubernetes.io/manage-backend-security-group-rules: "false"
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-southeast-1:381491900351:certificate/ef4be41a-0ae2-47f1-ba8c-1d86e89bc6fe
+    alb.ingress.kubernetes.io/healthcheck-path: "/"
+    alb.ingress.kubernetes.io/healthcheck-port: "13133"
+    alb.ingress.kubernetes.io/success-codes: "200,302,404"
+  hosts:
+    - host: opentelemetry-app.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /
+          pathType: Prefix
+          port: 4318
+  tls:
+    - secretName: opentelemetry-app-tls
+      hosts:
+        - opentelemetry-app.fms-uat.itfs.lta.gov.sg

@@ -1,0 +1,20 @@
+hooks:
+  - events: ["prepare"]
+    showlogs: true
+    command: "echo"
+    args:
+      - "App hook:"
+      - --event
+      - "{{`{{ .Event.Name }}`}}"
+      - --status
+      - "{{`{{ if .Event.Error }}failure{{ else }}success{{ end }}`}}"
+      - --environment
+      - "{{`{{ .Environment.Name }}`}}"
+      - --kube-context
+      - "{{`{{.Environment.KubeContext}}`}}"
+
+environments:
+  uat:
+    kubeContext: arn:aws:eks:ap-southeast-1:381491900351:cluster/UAT-APP-INTRA-EKS-APP-EKS-CLUSTER
+  prd:
+    kubeContext: arn:aws:eks:ap-southeast-1:654654228951:cluster/PRD-APP-INTRA-EKS-APP-EKS-CLUSTER

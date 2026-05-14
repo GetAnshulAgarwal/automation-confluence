@@ -1,0 +1,38 @@
+image:
+  repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/public.ecr.aws/fsx-csi-driver/aws-fsx-openzfs-csi-driver
+  tag: v1.2.0
+
+sidecars:
+  livenessProbe:
+    image:
+      repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/public.ecr.aws/eks-distro/kubernetes-csi/livenessprobe
+      tag: v2.9.0-eks-1-26-latest
+  nodeDriverRegistrar:
+    image:
+      repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/public.ecr.aws/eks-distro/kubernetes-csi/node-driver-registrar
+      tag: v2.7.0-eks-1-26-latest
+  provisioner:
+    image:
+      repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/public.ecr.aws/eks-distro/kubernetes-csi/external-provisioner
+      tag: v3.4.0-eks-1-26-latest
+  resizer:
+    image:
+      repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/public.ecr.aws/eks-distro/kubernetes-csi/external-resizer
+      tag: v1.7.0-eks-1-26-latest
+  snapshotter:
+    image:
+      repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/public.ecr.aws/eks-distro/kubernetes-csi/external-snapshotter/csi-snapshotter
+      tag: v6.2.1-eks-1-26-latest
+
+controller:
+  serviceAccount:
+    create: true
+    name: aws-fsx-openzfs-csi-controller-sa
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/aws-fsx-openzfs-csi-driver-controller-irsa-app
+node:
+  serviceAccount:
+    create: true
+    name: aws-fsx-openzfs-csi-node-sa
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/aws-fsx-openzfs-csi-driver-node-irsa-app

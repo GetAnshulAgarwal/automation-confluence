@@ -1,0 +1,26 @@
+bases:
+  - ../global.yaml
+  - app.yaml
+
+helmfiles:
+  - path: config-api/helmfile.yaml
+  - path: actionmanager/helmfile.yaml
+  - path: clientproxy/helmfile.yaml
+  - path: session/helmfile.yaml
+  - path: modeladapter/helmfile.yaml
+  - path: modeladapter-2/helmfile.yaml
+  - path: eventservice/helmfile.yaml
+  - path: timetable-api/helmfile.yaml
+  - path: busdispatchservice/helmfile.yaml
+  - path: uplinkconnector/helmfile.yaml
+  - path: downlinkcommproxy/helmfile.yaml
+  - path: downlinkconnector/helmfile.yaml
+  # - path: dispatcherclientweb/helmfile.yaml
+  - path: liosetweb/helmfile.yaml
+  - path: schedule/helmfile.yaml
+  - path: vehicleservice/helmfile.yaml
+
+  - path: obelisk/helmfile.yaml
+  - path: geoserver/helmfile.yaml
+  - path: softphone/helmfile.yaml
+  - path: softphonebackend/helmfile.yaml

@@ -1,0 +1,76 @@
+image:
+  repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/vehicleservice
+
+extraEnvs:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: LIO_ENVIRONMENT
+    value: lta_prod_cloud
+  - name: IDENTITYPROVIDER
+    value: Keycloak
+  - name: Keycloak__AuthorityUrl
+    value: "https://keycloak.fms.itfs.lta.gov.sg/"
+  - name: KEYCLOAK__REALM
+    value: LIO 
+  - name: Keycloak__vehicleservice
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KEYCLOAK_CLIENT_SECRET
+  - name: Endpoints__ConfigApiUrl
+    value: "https://config-api.fms.itfs.lta.gov.sg"
+  - name: LioConfiguration__useHttps
+    value: "0"
+  - name: DATABASE__MONGO__HOST
+    value: "prd-app-mongo-mongo1.fms.itfs.lta.gov.sg:27817,prd-app-mongo-mongo2.fms.itfs.lta.gov.sg:27817,prd-app-mongo-mongo3.fms.itfs.lta.gov.sg:27817"
+  - name: DATABASE__MONGO__USER
+    value: "lio"
+  - name: DATABASE__MONGO__PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: MONGO_DB_PASS
+  - name: DATABASE__MONGO__PARAMETERS
+    value: "authSource=admin&authMechanism=SCRAM-SHA-256"
+  - name: TZ
+    value: "Asia/Singapore"  
+  - name: KEYCLOAK_CLIENT_ID
+    value: "vehicleservice"
+  - name: KAFKA_USERNAME
+    value: "cc"
+  - name: KAFKA_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KAFKA_PASSWORD
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  hosts:
+    - host: vehicleservice.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - vehicleservice.fms.itfs.lta.gov.sg
+      secretName: vehicleservice-tls
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: "/health/readiness"
+    alb.ingress.kubernetes.io/success-codes: "200,302"
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-08b5165e42765ab7d
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+    
+serviceAccount:
+  create: true
+  name: vehicleservice-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-VEHICLESERVICE
+

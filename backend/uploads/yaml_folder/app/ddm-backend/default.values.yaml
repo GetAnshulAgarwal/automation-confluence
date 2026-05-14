@@ -1,0 +1,41 @@
+replicaCount: 2
+
+image:
+  repository: ddm-backend
+  tag: 1.0.12
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 8181
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 512Mi
+  requests:
+    cpu: 128m
+    memory: 150Mi
+
+livenessProbe:
+  httpGet:
+    path: "/healthz/"
+    port: 8181
+    host: localhost
+    scheme: HTTP
+  initialDelaySeconds: 60
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: "/readyz/"
+    port: 8181
+    host: localhost
+    scheme: HTTP
+  initialDelaySeconds: 50
+  timeoutSeconds: 5
+  periodSeconds: 60
+  successThreshold: 1
+  failureThreshold: 3

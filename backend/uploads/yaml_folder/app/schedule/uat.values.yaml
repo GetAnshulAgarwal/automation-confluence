@@ -1,0 +1,85 @@
+extraEnvs:
+  - name: ASPNETCORE_ENVIRONMENT
+    value: Production
+  - name: LIO_ENVIRONMENT
+    value: lta_uat_cloud
+  - name: IDENTITYPROVIDER
+    value: Keycloak
+  - name: Keycloak__AuthorityUrl
+    value: "https://keycloak.fms-uat.itfs.lta.gov.sg/"
+  - name: KEYCLOAK__REALM
+    value: LIO 
+  - name: Keycloak__scheduleService
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KEYCLOAK_CLIENT_SECRET
+  - name: Endpoints__ConfigApiUrl
+    value: "https://config-api.fms-uat.itfs.lta.gov.sg"
+  - name: LioConfiguration__useHttps
+    value: "0"
+  - name: DATABASE__MONGO__HOST
+    value: "uat-app-mongo-mongo1.fms-uat.itfs.lta.gov.sg:27817,uat-app-mongo-mongo2.fms-uat.itfs.lta.gov.sg:27817,uat-app-mongo-mongo3.fms-uat.itfs.lta.gov.sg:27817"
+  - name: DATABASE__MONGO__USER
+    value: "lio"
+  - name: DATABASE__MONGO__PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: MONGO_DB_PASS
+  - name: DATABASE__MONGO__PARAMETERS
+    value: "authSource=admin&authMechanism=SCRAM-SHA-256"
+  - name: TZ
+    value: "Asia/Singapore"
+  - name: KAFKA_USERNAME
+    value: "cc"
+  - name: KAFKA_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: KAFKA_PASSWORD
+  - name: Schedule__PerfTest__DoNotCalculatePassages
+    value: "true"
+  - name: Infrastructure__Logging__LogLevel
+    value: Info
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  hosts:
+    - host: schedule.fms-uat.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - schedule.fms-uat.itfs.lta.gov.sg
+      secretName: schedule-tls
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/healthcheck-path: "/health/readiness"
+    alb.ingress.kubernetes.io/success-codes: "200,302"
+    alb.ingress.kubernetes.io/load-balancer-name: uat-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-0e94cb42970e1c3d9
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:381491900351:regional/webacl/UAT-APP-INTRA-EKS-APP-WAF/9f041adc-078f-44f9-88c0-586f18144a2c
+
+serviceAccount:
+  create: true
+  name: schedule-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::381491900351:role/UAT-IAMR-EKS-POD-IDENTITY-SCHEDULE
+extraVolumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "schedule-spc"
+extraVolumeMounts:
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true

@@ -1,0 +1,62 @@
+extraEnvs:
+  - name: JAVA_OPTS
+    value: "-Dmhcc.environment=lta_uat_cloud -Dmhcc.configserviceurl=http://pi.fms-uat.itfs.lta.gov.sg:8480/mhcc.cci.configurator/configapi"
+
+replicaCount: 3
+
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/config-api
+  tag: 4.3.0
+  pullPolicy: Always
+service:
+  type: ClusterIP
+  port: 6006
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 2Gi
+  requests:
+    cpu: 128m
+    memory: 1Gi
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+livenessProbe:
+  httpGet:
+    path: "/health/liveness"
+    port: 6006
+    scheme: HTTP
+  initialDelaySeconds: 60
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: "/health/readiness"
+    port: 6006
+    scheme: HTTP
+  initialDelaySeconds: 90
+  timeoutSeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  failureThreshold: 3
+
+extraVolumes:
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "config-api-spc"
+extraVolumeMounts:
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true
+
+nodeSelector:
+  karpenter.sh/nodepool: application-node-pool

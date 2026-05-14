@@ -1,0 +1,27 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kps-kube-scheduler
+  namespace: observability
+  labels:
+    release: kps
+spec:
+  selector:
+    matchLabels:
+      component: apiserver
+      provider: kubernetes
+  namespaceSelector:
+    matchNames:
+      - "default"
+  endpoints:
+  - port: https
+    scheme: https
+    interval: 15s
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tlsConfig:
+      caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      insecureSkipVerify: true
+    path: "/apis/metrics.eks.amazonaws.com/v1/ksh/container/metrics"
+    relabelings:
+    - targetLabel: monitoringJob
+      replacement: kubeScheduler_metrics_via_api_server

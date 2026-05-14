@@ -1,0 +1,97 @@
+env: []
+
+service:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 2020
+      targetPort: 2020
+      protocol: TCP
+    - name: http-ingest
+      port: 443
+      targetPort: 443
+      protocol: TCP
+
+config:
+  inputs: |
+    [INPUT]
+        Name tail
+        Path /var/log/containers/*.log
+        multiline.parser docker, cri
+        Tag kube.*
+        Mem_Buf_Limit 900MB
+        Skip_Long_Lines On
+
+    [INPUT]
+        Name systemd
+        Tag host.*
+        Systemd_Filter _SYSTEMD_UNIT=kubelet.service
+        Read_From_Tail On
+
+    [INPUT]
+        Name forward
+        Listen 0.0.0.0
+        Port 24224
+
+    [INPUT]
+        Name http
+        Port 443
+
+  filters: |
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        Merge_Log On
+        Keep_Log Off
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude Off
+        Labels Off
+        Annotations Off
+
+    [FILTER]
+        Name nest
+        Match kube.*
+        Operation lift
+        Nested_under kubernetes
+        Add_prefix k8s_
+
+    [FILTER]
+        Name grep
+        Match kube.*
+        Exclude k8s_namespace_name fluentbit
+
+    [FILTER]
+        Name modify
+        Match kube.*
+        Add source_tier app
+
+    [FILTER]
+        Name modify
+        Match host.*
+        Add source_tier app
+
+  outputs: |
+    [OUTPUT]
+        Name http
+        Match *
+        Host fluent-man.fms.itfs.lta.gov.sg
+        Port 443
+        URI /
+        Format json
+        Header_Tag X-Fluent-Tag
+        tls On
+        tls.verify Off
+        Retry_Limit False
+
+ingress:
+  enabled: false
+
+extraPorts:
+  - port: 24224
+    containerPort: 24224
+    protocol: TCP
+    name: forward
+  - port: 443
+    containerPort: 443
+    protocol: TCP
+    name: http-ingest

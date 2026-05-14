@@ -1,0 +1,17 @@
+linux:
+  image:
+    repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/registry.k8s.io/csi-secrets-store/driver
+    tag: v1.5.6
+    
+  crds:
+    image:
+      repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/registry.k8s.io/csi-secrets-store/driver-crds
+      tag: v1.5.6
+
+  registrarImage:
+    repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/registry.k8s.io/sig-storage/csi-node-driver-registrar
+    tag: v2.13.0
+
+  livenessProbeImage:
+    repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/registry.k8s.io/sig-storage/livenessprobe
+    tag: v2.15.0

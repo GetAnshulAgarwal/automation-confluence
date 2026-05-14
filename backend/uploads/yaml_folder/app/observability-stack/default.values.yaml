@@ -1,0 +1,302 @@
+fullnameOverride: "kps"
+
+nameOverride: "kps"
+
+namespaceOverride: "observability"
+
+commonLabels:
+  deployedWith: "kube-prometheus-stack"
+
+global:
+  rbac:
+    create: true
+crds:
+  enabled: true
+  imageRegistry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+
+windowsMonitoring:
+  enabled: false
+  
+prometheus-windows-exporter: null
+
+alertmanager:
+  enabled: false
+
+grafana:
+  enabled: false
+
+kubernetesServiceMonitors:
+  enabled: true
+
+kubeApiServer:
+  enabled: true
+
+kubelet:
+  enabled: true
+  namespace: kube-system
+
+kubeControllerManager:
+  enabled: false
+
+coreDns:
+  enabled: true
+
+kubeDns:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+    
+kubeProxy:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+kube-state-metrics:
+  namespaceOverride: ""
+  rbac:
+    create: true
+  releaseLabel: true
+
+  image:
+    registry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+    repository: kube-state-metrics
+    tag: v2.18.0
+
+  prometheusScrape: false
+
+  prometheus:
+    monitor:
+      enabled: true
+      interval: "15s"
+  selfMonitor:
+    enabled: true
+
+nodeExporter:
+  enabled: true
+
+prometheus-node-exporter:
+  namespaceOverride: ""
+
+  image:
+    registry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+    repository: node-exporter
+    tag: v1.10.2
+
+  podLabels:
+    jobLabel: node-exporter
+  
+  releaseLabel: true
+
+  service:
+    labels:
+      jobLabel: node-exporter
+
+  prometheus:
+    monitor:
+      enabled: true
+      jobLabel: jobLabel
+      interval: "15s"
+      attachMetadata:
+        node: true
+  
+  rbac:
+    pspEnabled: false
+
+prometheusOperator:
+  enabled: true
+
+  admissionWebhooks:
+    deployment:
+      enabled: true
+      replicas: 1
+      service:
+        type: ClusterIP
+
+      image:
+        registry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+        repository: prometheus-operator-admission-webhook
+        tag: v0.89.0
+        sha: ""
+        pullPolicy: IfNotPresent
+
+      hostNetwork: false
+
+      logLevel: debug
+
+    patch:
+      enabled: true
+      image:
+        registry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+        repository: kube-webhook-certgen
+        tag: v1.6.1
+        sha: ""
+        pullPolicy: IfNotPresent
+    
+    certManager:
+      enabled: false
+ 
+  namespaces: {}
+  
+  service:
+    type: ClusterIP
+
+  serviceMonitor:
+    selfMonitor: true
+
+    additionalLabels: {}
+
+    interval: "15s"
+
+  image:
+    registry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+    repository: prometheus-operator
+    tag: v0.82.2
+    sha: ""
+    pullPolicy: IfNotPresent
+
+  prometheusConfigReloader:
+    image:
+      registry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+      repository: prometheus-config-reloader
+      tag: v0.82.2
+      sha: ""
+
+prometheus:
+  enabled: true
+
+  thanosService:
+    enabled: false
+
+  thanosServiceMonitor:
+    enabled: false
+    
+  service:
+    type: ClusterIP
+
+  thanosIngress:
+    enabled: false
+
+  serviceMonitor:
+    selfMonitor: true
+    interval: "15s"
+    
+  prometheusSpec:
+
+    storageSpec: {}
+          
+    disableCompaction: false
+    automountServiceAccountToken: true
+    scrapeInterval: "15s"
+
+    ignoreNamespaceSelectors: false
+    enableAdminAPI: false
+
+    web:
+      httpConfig:
+
+    exemplars: 
+      maxSize: 100000
+
+    enableFeatures: 
+    - exemplar-storage
+    - native-histograms
+    - metadata-wal-records
+
+    additionalConfig:
+      enableOTLPReceiver: true
+      otlp:
+        promoteResourceAttributes:
+        - service.instance.id
+        - service.name
+        - service.namespace
+        - cloud.availability_zone
+        - cloud.region
+        - container.name
+        - deployment.environment.name
+        - k8s.cluster.name
+        - k8s.container.name
+        - k8s.cronjob.name
+        - k8s.daemonset.name
+        - k8s.deployment.name
+        - k8s.job.name
+        - k8s.namespace.name
+        - k8s.pod.name
+        - k8s.replicaset.name
+        - k8s.statefulset.name
+        translationStrategy: NoUTF8EscapingWithSuffixes
+
+    image:
+      registry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+      repository: prometheus
+      tag: v3.8.0
+      sha: ""
+
+    externalLabels:
+
+    enableRemoteWriteReceiver: true
+    prometheusExternalLabelNameClear: true
+    replicaExternalLabelName: "__replica__"
+    replicaExternalLabelNameClear: true
+
+    scrapeClasses:
+      - name: default-class-to-add-cluster-identifying-labels
+        default: true
+        relabelings:
+          - targetLabel: cluster
+            replacement: your-cluster-name
+            
+    nodeSelector: {}
+
+    ruleNamespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+           - observability
+    serviceMonitorNamespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+           - observability
+    scrapeConfigNamespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+           - observability
+    
+    ruleSelectorNilUsesHelmValues: true
+    ruleSelector: {}
+    
+    serviceMonitorSelectorNilUsesHelmValues: true
+    serviceMonitorSelector: {}
+
+    scrapeConfigSelectorNilUsesHelmValues: true
+    scrapeConfigSelector: {}
+
+    retention: 10d
+
+    retentionSize: ""
+
+    tsdb:
+      outOfOrderTimeWindow: 30m
+
+    replicas: 1
+    shards: 1
+    logLevel: info
+    remoteWriteDashboards: true
+
+    portName: "http-web"
+
+    overrideHonorLabels: false
+
+    overrideHonorTimestamps: false
+  
+thanosRuler:
+  enabled: false

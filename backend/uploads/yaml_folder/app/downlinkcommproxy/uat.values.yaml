@@ -1,0 +1,10 @@
+extraEnvs:
+  - name: TOPIC_PREFIX
+    value: "lio.env0"
+  - name: NATS_ENDPOINT_URL
+    value: "nats://nats.fms-uat.itfs.lta.gov.sg"
+  - name: TZ
+    value: "Asia/Singapore"  
+
+ingress:
+  enabled: false

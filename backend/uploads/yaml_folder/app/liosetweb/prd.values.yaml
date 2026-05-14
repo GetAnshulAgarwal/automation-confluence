@@ -1,0 +1,29 @@
+image:
+  repository: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/liosetweb
+
+extraEnvs:
+  - name: TZ
+    value: "Asia/Singapore"
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  hosts:
+    - host: liosetweb.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - liosetweb.fms.itfs.lta.gov.sg
+      secretName: liosetweb-tls
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/success-codes: "200,302"
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/security-groups: sg-08b5165e42765ab7d
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e

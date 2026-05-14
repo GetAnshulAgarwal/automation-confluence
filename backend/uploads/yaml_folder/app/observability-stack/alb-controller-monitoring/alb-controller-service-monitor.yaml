@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kps-aws-load-balancer-controller
+  namespace: observability
+  labels:
+    release: kps
+spec:
+  jobLabel: "app.kubernetes.io/instance"
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: aws-load-balancer-controller
+      app.kubernetes.io/component: metrics
+  namespaceSelector:
+    matchNames:
+      - "kube-system"
+  endpoints:
+  - port: metrics

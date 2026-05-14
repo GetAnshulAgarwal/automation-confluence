@@ -1,0 +1,218 @@
+image:
+  repository:  654654228951.dkr.ecr.ap-southeast-1.amazonaws.com/lrd-ccfileupload
+
+extraEnvs:
+  - name: DB_SID
+    value: "LRD"
+  - name: DB_DATABASEMACHINEIP
+    value: "prd-app-oracle-oracledb.cha4uqgeogfu.ap-southeast-1.rds.amazonaws.com"
+  - name: DB_BIDB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_BIDB_USERNAME
+  - name: DB_BIDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_BIDB_PASSWORD
+  - name: DB_BIDB_USER
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BIDB_USERNAME
+  - name: DB_BIDB_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BIDB_PASSWORD
+  - name: DB_DSDB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSDB_USERNAME
+  - name: DB_DSDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSDB_PASSWORD
+  - name: DB_DSLIODB_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSLIODB_USERNAME
+  - name: DB_DSLIODB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_DSLIODB_PASSWORD
+  - name: DB_OPERATIONAL_USER_APP
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_OPERATIONALDB_USERNAME
+  - name: DB_OPERATIONALDB_APP_PWD
+    valueFrom:
+      secretKeyRef:
+        name: aws-secrets-manager-secret
+        key: BI_OPERATIONALDB_PASSWORD
+  - name: DB_PORT
+    value: "1581"
+  - name: DB_CONNECTION_TIMEOUT
+    value: "120"
+  - name: DB_DRIVER_NAME
+    value: "oracle.jdbc.driver.OracleDriver"
+  - name: DB_MAX_ACTIVE_CONNECTIONS
+    value: "40"
+  - name: DB_MAX_IDLE_CONNECTIONS
+    value: "0"
+  - name: DB_MAX_WAIT_TIME
+    value: "30000"
+  - name: ME_NATSSERVER
+    value: "nats://nats.fms.itfs.lta.gov.sg:4222"
+  - name: ME_CCUPLOADPROCESSINGPATH
+    value: "/san/MainETL/CCRecordings"
+  - name: ME_CC_CDPREDDATABASEPATH
+    value: ""
+  - name: ME_CCSTREAMNAME
+    value: "CC_Upload"
+  - name: ME_CCFILENAMESUBJECT
+    value: "CC_Files"
+  - name: ME_CC_OPERATORLOC_1
+    value: "/san/MainETL/CCOpr1,BE"
+  - name: ME_FILESTOPROCESSFOLDER
+    value: "FilesToProcess"
+  - name: ME_FILESNOTPROCESSEDFOLDER
+    value: "FilesNotProcessed"
+  - name: ME_FILESPROCESSEDFOLDER
+    value: "FilesProcessed"
+  - name: ME_FILESPREPROCESSEDFOLDER
+    value: "FilesPreProcessed"
+  - name: ME_FILESTOLOADFOLDER
+    value: "FilesToLoad"
+  - name: ME_FILESLOADEDFOLDER
+    value: "FilesLoaded"
+  - name: ME_LOCALCACHEURL
+    value: "https://lrd-cache.fms.itfs.lta.gov.sg/v1/"
+  - name: TZ
+    value: "Asia/Singapore" 
+  - name: ME_BACKUPPATH
+    value: "/LRD_Backup/"
+  - name: ME_BACKUPENABLE
+    value: "Y"
+  - name: ME_DELETEFILESOFFSET
+    value: "4"
+  - name: ME_NATSREPLICAS
+    value: "3"
+  - name: ME_NATS_RETENTION_MESSAGE_DAYS
+    value: "7"
+  - name: ME_CACHEUPDATEDSUBJECT
+    value: "CacheUpdated"
+  - name: ME_CACHESTREAMNAME
+    value: "CacheUpdatedStream"
+  - name: ME_CCUPLOADFILELIST
+    value: "Operational_Data,Duty_Data,Transfer_Data,MTV,CENTRALTLP,PASSENGERDATA"
+  - name: ME_CHARACTEDENCODING
+    value: "UTF-8"
+  - name: ME_DISPATCHDATABASEPATH
+    value: ""
+  - name: "ME_THREAD_STALL_THRESHOLD_SECS"
+    value: "600"
+  - name: ME_NATS_ALERT_SUBJECT
+    value: "LRD.Alerts.Alert"
+  - name: ME_MEMORY_THRESHOLD_MB
+    value: "300"
+  - name: POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: POD_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+    
+extraDeploy:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: lrd-ccfileupload-san-fsx-pvc
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 50Gi
+      storageClassName: ""
+      volumeName: lrd-ccfileupload-san-fsx-pv
+  
+serviceAccount:
+  create: true
+  name: lrd-ccfileupload-sa
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::654654228951:role/PRD-IAMR-EKS-APP-POD-IDENTITY-LRD
+
+extraVolumes:
+  - name: fsx-data
+    persistentVolumeClaim:
+      claimName: lrd-ccfileupload-san-fsx-pvc
+  - name: secrets-store-inline
+    csi:
+      driver: secrets-store.csi.k8s.io
+      readOnly: true
+      volumeAttributes:
+        secretProviderClass: "lrd-ccfileupload-spc"
+
+extraVolumeMounts:
+  - name: fsx-data
+    mountPath: "/san"
+  - name: secrets-store-inline
+    mountPath: "/mnt/secrets-store"
+    readOnly: true
+
+ingress:
+  enabled: true
+  className: alb-internal-app
+  annotations:
+    kubernetes.io/tls-acme: "false"
+    certmanager.k8s.io/cluster-issuer: acm-aws
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/load-balancer-name: prd-app-intra-eks-app-alb-eks
+    alb.ingress.kubernetes.io/group.name: alb-internal-app
+    alb.ingress.kubernetes.io/healthcheck-path: "/readyz"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:ap-southeast-1:654654228951:regional/webacl/PRD-APP-INTRA-EKS-APP-WAF/2d40298d-b31c-4edf-b5ee-b6c9c928a17e
+    nginx.ingress.kubernetes.io/server-snippet: |
+      large_client_header_buffers 4 32k;
+  hosts:
+    - host: lrd-ccfileupload.fms.itfs.lta.gov.sg
+      paths:
+        - path: /*
+          pathType: ImplementationSpecific
+  tls:
+    - hosts:
+        - lrd-ccfileupload.fms.itfs.lta.gov.sg
+      secretName: lrd-ccfileupload-tls
+
+resources:
+  limits:
+    cpu: 512m
+    memory: 2Gi
+  requests:
+    cpu: 128m
+    memory: 1Gi
+
+keda:
+  enabled: true
+  secret: {}
+  scaledObject:
+    minReplicas: 2
+    maxReplicas: 5
+    pollingInterval: 5
+    triggers:
+      - type: nats-jetstream
+        metadata:
+          natsServerMonitoringEndpoint: "nats://nats.fms-prd.itfs.lta.gov.sg:8222"
+          account: "$G"
+          stream: "CC_Upload"
+          consumer: "cc_subscriber3"
+          lagThreshold: "10"

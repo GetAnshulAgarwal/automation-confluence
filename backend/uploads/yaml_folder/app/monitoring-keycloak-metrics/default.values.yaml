@@ -1,0 +1,40 @@
+replicaCount: 1
+
+image:
+  repository: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com/monitoring-keycloak-metrics
+  tag: 0.1.7
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources:
+  limits:
+    cpu: 256m
+    memory: 512Mi
+  requests:
+    cpu: 64m
+    memory: 256Mi
+
+livenessProbe: null
+  # httpGet:
+  #   path: "/metrics"
+  #   port: 8000
+  #   scheme: HTTP
+  # initialDelaySeconds: 30
+  # timeoutSeconds: 5
+  # periodSeconds: 30
+  # successThreshold: 1
+  # failureThreshold: 3
+
+readinessProbe: null
+  # httpGet:
+  #   path: "/metrics"
+  #   port: 8000
+  #   scheme: HTTP
+  # initialDelaySeconds: 10
+  # timeoutSeconds: 5
+  # periodSeconds: 10
+  # successThreshold: 1
+  # failureThreshold: 3

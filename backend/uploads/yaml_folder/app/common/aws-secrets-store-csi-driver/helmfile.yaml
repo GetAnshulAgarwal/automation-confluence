@@ -1,0 +1,22 @@
+environments:
+  uat:
+    values:
+      - ecrRegistry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+  prd:
+    values:
+      - ecrRegistry: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com
+---
+bases:
+  - ../../../global.yaml
+  - ../../app.yaml
+
+releases:
+  # https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+  - name: secrets-store-csi-driver
+    namespace: kube-system
+    installed: true
+    chart: secrets-store-csi-driver/secrets-store-csi-driver
+    version: 1.5.6
+    values:
+      - default.values.yaml
+      - {{ .Environment.Name }}.values.yaml

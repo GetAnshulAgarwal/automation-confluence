@@ -1,0 +1,170 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f0f2f5;
+  min-height: 100vh;
+  padding: 40px 20px;
+  color: #333;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.8rem;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  margin-bottom: 24px;
+}
+
+.field {
+  margin-bottom: 24px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #222;
+}
+
+input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px dashed #c5c5c5;
+  border-radius: 8px;
+  background: #fafafa;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+input[type="file"]:hover {
+  border-color: #4a90d9;
+  background: #f0f6ff;
+}
+
+.hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background: #2f5496;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  margin-top: 8px;
+}
+
+button:hover {
+  background: #1e3d7b;
+}
+
+button:active {
+  transform: scale(0.99);
+}
+
+button:disabled {
+  background: #9aabcb;
+  cursor: not-allowed;
+}
+
+#status {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  display: none;
+}
+
+#status.info {
+  background: #e8f0fe;
+  color: #1a56a4;
+  display: block;
+}
+
+#status.success {
+  background: #e6f4ea;
+  color: #1e7e34;
+  display: block;
+}
+
+#status.error {
+  background: #fce8e6;
+  color: #c5221f;
+  display: block;
+}
+
+.legend {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 32px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.legend h3 {
+  font-size: 1rem;
+  margin-bottom: 14px;
+  color: #333;
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.red    { background: #e53935; }
+.dot.orange { background: #fb8c00; }
+
+.legend-note {
+  font-size: 0.82rem;
+  color: #666;
+  margin-top: 4px;
+}

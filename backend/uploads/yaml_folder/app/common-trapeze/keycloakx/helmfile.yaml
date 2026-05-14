@@ -1,0 +1,52 @@
+environments:
+  uat:
+    values:
+      - ecrRegistry: 381491900351.dkr.ecr.ap-southeast-1.amazonaws.com
+  prd:
+    values:
+      - ecrRegistry: 654654228951.dkr.ecr.ap-southeast-1.amazonaws.com
+---
+bases:
+  - ../../../global.yaml
+  - ../../app.yaml
+
+helmDefaults:
+  wait: false
+
+releases:
+# https://artifacthub.io/packages/helm/codecentric/keycloakx
+  - name: keycloakx
+    namespace: keycloakx
+    createNamespace: true
+    chart: ecr-uat-helm-charts/codecentric/keycloakx
+    version: 7.1.9
+    values:
+      - default.values.yaml
+      - {{ .Environment.Name }}.values.yaml
+      - {{toYaml .Values | nindent 8}}
+    hooks:
+      - events: ["presync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "namespace.yaml"
+          - "--context"
+          - "{{`{{.Environment.KubeContext}}`}}"
+      - events: ["presync"]
+        showlogs: true
+        command: "kubectl"
+        args:
+          - "apply"
+          - "-f"
+          - "{{ .Environment.Name }}.secretClass.yaml"
+          - "--context"
+          - "{{`{{.Environment.KubeContext}}`}}"
+      - events: ["presync"]
+        showlogs: true
+        command: "bash"
+        args:
+          - "-c"
+          - "kubectl create configmap keycloakx-ldap-cert --from-file={{ .Environment.Name }}-lta-dc.crt={{ .Environment.Name }}-lta-dc.crt -n keycloakx --dry-run=client -o yaml | kubectl apply -f - --context {{`{{.Environment.KubeContext}}`}}"
+
