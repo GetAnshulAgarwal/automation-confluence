@@ -218,12 +218,31 @@ def parse_table(table, extracted_data, known_folders, current_folder):
         folder_match = get_known_folder_match(first_cell_text, known_folders)
         is_header_row = find_header_indexes(row)[0] is not None
 
-        if folder_match and not is_header_row and not is_valid_env_name(first_cell_text):
-            current_folder = folder_match
-            name_index = None
-            value_index = None
-            header_found_in_this_table = False
-            continue
+        # Check if this cell looks like ANY service/folder heading
+        # (lowercase, hyphenated, single token) even if not in known_folders
+        is_unknown_folder_heading = (
+            not is_header_row
+            and not is_valid_env_name(first_cell_text)
+            and bool(re.match(r'^[a-z][a-z0-9\-]*$', normalize_folder_name(first_cell_text)))
+            and first_cell_text.strip() != ""
+        )
+
+        if not is_header_row and not is_valid_env_name(first_cell_text):
+            if folder_match:
+                # Known folder — switch to it
+                current_folder = folder_match
+                name_index = None
+                value_index = None
+                header_found_in_this_table = False
+                continue
+            elif is_unknown_folder_heading:
+                # Unknown folder heading — store its name so rows are
+                # extracted and reach compare_data as FOLDER_NOT_PRESENT.
+                current_folder = normalize_folder_name(first_cell_text)
+                name_index = None
+                value_index = None
+                header_found_in_this_table = False
+                continue
 
         # --- Header row check (Name | Value columns) ---
         possible_name_idx, possible_value_idx = find_header_indexes(row)
@@ -267,6 +286,36 @@ def parse_table(table, extracted_data, known_folders, current_folder):
 # =========================
 # DOCX MAIN PARSER
 # =========================
+def is_section_heading(paragraph):
+    """
+    Returns True if this paragraph is a section/service heading.
+
+    Two signals:
+    1. Style is a Word Heading style (Heading 1 / Heading 2 / Heading 3 etc.)
+    2. Text looks like a service folder name: all-lowercase, may contain
+       hyphens/digits, no spaces, not a valid ALL-CAPS env var name.
+       e.g. "lrd-mapanalytics", "realtimeapi", "lrd-mtvclient"
+
+    This is used to detect boundaries between service sections so that
+    when we hit a heading for an UNKNOWN folder we reset current_folder
+    to None — preventing rows from the unknown section from being
+    incorrectly attributed to the last known folder.
+    """
+    style_name = paragraph.style.name.lower() if paragraph.style else ""
+    if "heading" in style_name:
+        return True
+
+    text = clean_text(paragraph.text)
+    if not text or len(text) > 80:
+        return False
+
+    # Looks like a service name: lowercase letters/digits/hyphens, no spaces
+    if re.match(r'^[a-z][a-z0-9\-]*$', text):
+        return True
+
+    return False
+
+
 def parse_docx(docx_path, known_folders=None):
     doc = Document(docx_path)
 
@@ -283,7 +332,17 @@ def parse_docx(docx_path, known_folders=None):
                 block.text, known_folders
             )
             if folder_match:
+                # Known folder heading — switch to it
                 current_folder = folder_match
+            elif is_section_heading(block):
+                # Unknown section heading — store its normalized name so its rows
+                # are still extracted and reach compare_data, which marks them
+                # FOLDER_NOT_PRESENT because the folder does not exist on disk.
+                # Previously this was set to None, silently dropping all rows
+                # from unknown sections (e.g. lrd-mtvclient) so they never
+                # appeared in the Excel output at all.
+                heading_text = normalize_folder_name(block.text)
+                current_folder = heading_text if heading_text else None
 
         elif isinstance(block, Table):
             current_folder = parse_table(
