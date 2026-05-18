@@ -1,40 +1,133 @@
-const compareBtn = document.getElementById('compareBtn');
-const statusDiv  = document.getElementById('status');
+const API = 'http://127.0.0.1:5000';
 
+const loadFoldersBtn        = document.getElementById('loadFoldersBtn');
+const compareBtn            = document.getElementById('compareBtn');
+const statusDiv             = document.getElementById('status');
+const folderSelectionSection= document.getElementById('folderSelectionSection');
+const folderList            = document.getElementById('folderList');
+const selectedCount         = document.getElementById('selectedCount');
+const selectAllBtn          = document.getElementById('selectAllBtn');
+const deselectAllBtn        = document.getElementById('deselectAllBtn');
+
+// ─── Helpers ────────────────────────────────────────────────
 function setStatus(message, type) {
     statusDiv.innerText = message;
     statusDiv.className = type;
 }
 
+function updateCount() {
+    const total    = folderList.querySelectorAll('input[type=checkbox]').length;
+    const checked  = folderList.querySelectorAll('input[type=checkbox]:checked').length;
+    selectedCount.textContent = `${checked} / ${total} selected`;
+    compareBtn.style.display = checked > 0 ? 'block' : 'none';
+}
+
+// ─── Load Folders ────────────────────────────────────────────
+loadFoldersBtn.addEventListener('click', async () => {
+    const appFolderPath = document.getElementById('appFolderPath').value.trim().replace(/^["']+|["']+$/g, '');
+
+    if (!appFolderPath) {
+        alert('Please enter the App Folder Path first');
+        return;
+    }
+
+    setStatus('', '');
+    loadFoldersBtn.disabled = true;
+    loadFoldersBtn.textContent = 'Loading...';
+
+    try {
+        const res = await fetch(`${API}/get-folders`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appFolderPath })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Failed to load folders');
+
+        const folders = data.folders;
+
+        if (!folders || folders.length === 0) {
+            setStatus('❌ No subfolders found in the specified path.', 'error');
+            return;
+        }
+
+        // Build checkbox grid
+        folderList.innerHTML = '';
+        folders.forEach(folder => {
+            const label = document.createElement('label');
+            label.className = 'folder-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = folder;
+            checkbox.checked = true; // default: all selected
+            checkbox.addEventListener('change', updateCount);
+
+            const span = document.createElement('span');
+            span.textContent = folder;
+
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            folderList.appendChild(label);
+        });
+
+        folderSelectionSection.style.display = 'block';
+        updateCount();
+        setStatus(`✅ ${folders.length} folders loaded. Select which to compare.`, 'success');
+
+    } catch (err) {
+        setStatus('❌ Error: ' + err.message, 'error');
+    } finally {
+        loadFoldersBtn.disabled = false;
+        loadFoldersBtn.textContent = 'Load Folders';
+    }
+});
+
+// ─── Select / Deselect All ───────────────────────────────────
+selectAllBtn.addEventListener('click', () => {
+    folderList.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = true);
+    updateCount();
+});
+
+deselectAllBtn.addEventListener('click', () => {
+    folderList.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+    updateCount();
+});
+
+// ─── Compare ─────────────────────────────────────────────────
 compareBtn.addEventListener('click', async () => {
 
-    const docFile     = document.getElementById('docFile').files[0];
-    const folderFiles = document.getElementById('folderInput').files;
+    const documentPath  = document.getElementById('documentPath').value.trim().replace(/^["']+|["']+$/g, '');
+    const appFolderPath = document.getElementById('appFolderPath').value.trim().replace(/^["']+|["']+$/g, '');
 
-    if (!docFile) {
-        alert('Please upload a PDF or DOCX file');
+    const selectedFolders = Array.from(
+        folderList.querySelectorAll('input[type=checkbox]:checked')
+    ).map(cb => cb.value);
+
+    if (!documentPath) {
+        alert('Please enter the Document Path');
         return;
     }
 
-    if (!folderFiles || folderFiles.length === 0) {
-        alert('Please upload the app folder');
+    if (selectedFolders.length === 0) {
+        alert('Please select at least one folder');
         return;
-    }
-
-    const formData = new FormData();
-    formData.append('document', docFile);
-
-    for (let file of folderFiles) {
-        formData.append('yamlFiles', file, file.webkitRelativePath);
     }
 
     try {
         compareBtn.disabled = true;
-        setStatus('⏳ Comparing... please wait', 'info');
+        setStatus(`⏳ Comparing ${selectedFolders.length} folder(s)... please wait`, 'info');
 
-        const response = await fetch('http://127.0.0.1:5000/compare', {
+        const response = await fetch(`${API}/compare`, {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                documentPath,
+                appFolderPath,
+                selectedFolders
+            })
         });
 
         if (!response.ok) {
@@ -49,19 +142,17 @@ compareBtn.addEventListener('click', async () => {
         const blob = await response.blob();
         const url  = window.URL.createObjectURL(blob);
         const a    = document.createElement('a');
-
         a.href     = url;
         a.download = 'comparison_result.xlsx';
         document.body.appendChild(a);
         a.click();
         a.remove();
 
-        setStatus('✅ Excel downloaded successfully! Open the file to see mismatches.', 'success');
+        setStatus(`✅ Done! Excel downloaded with ${selectedFolders.length} folder(s) compared.`, 'success');
 
-    } catch (error) {
-        console.error(error);
-        setStatus('❌ Error: ' + error.message, 'error');
-
+    } catch (err) {
+        console.error(err);
+        setStatus('❌ Error: ' + err.message, 'error');
     } finally {
         compareBtn.disabled = false;
     }

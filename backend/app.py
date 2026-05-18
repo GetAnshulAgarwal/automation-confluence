@@ -15,129 +15,104 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 # =========================
-# SAVE UPLOADED FOLDER FILES
-# =========================
-def save_uploaded_yaml_files(files, save_base_path):
-    """
-    Save browser-uploaded folder files preserving relative paths.
-
-    Browser sends files with webkitRelativePath as filename, e.g.:
-      app/realtimeapi/prd.values.yaml
-      app/realtimeapi/uat.values.yaml
-      app/predictiontimeapp/prd.values.yaml
-      ...
-
-    After save, disk structure becomes:
-      yaml_folder/app/realtimeapi/prd.values.yaml
-      yaml_folder/app/realtimeapi/uat.values.yaml
-      yaml_folder/app/predictiontimeapp/prd.values.yaml
-      ...
-    """
-    os.makedirs(save_base_path, exist_ok=True)
-
-    for file in files:
-        # file.filename contains the full relative path sent by browser
-        relative_path = file.filename.replace("\\", "/")
-        safe_parts = [
-            part for part in relative_path.split("/")
-            if part not in ["", ".", ".."]
-        ]
-
-        if not safe_parts:
-            continue
-
-        final_path = os.path.join(save_base_path, *safe_parts)
-        os.makedirs(os.path.dirname(final_path), exist_ok=True)
-        file.save(final_path)
-
-
-# =========================
 # GET SUBFOLDER NAMES
 # =========================
 def get_app_folder_names(yaml_base_path):
-    """
-    Returns list of subdirectory names directly inside yaml_base_path.
-    These are the service folder names: realtimeapi, predictiontimeapp, etc.
-    """
     folders = []
-
     if not os.path.exists(yaml_base_path):
         return folders
-
     for item in os.listdir(yaml_base_path):
         item_path = os.path.join(yaml_base_path, item)
         if os.path.isdir(item_path):
             folders.append(item)
-
     return folders
 
 
 # =========================
+# GET FOLDERS API
+# Returns list of subfolders inside the app folder
+# =========================
+@app.route("/get-folders", methods=["POST"])
+def get_folders():
+    try:
+        data = request.get_json()
+        app_folder_path = (data or {}).get("appFolderPath", "").strip().strip('"').strip("'").strip()
+
+        if not app_folder_path:
+            return jsonify({"error": "appFolderPath is required"}), 400
+
+        if not os.path.isdir(app_folder_path):
+            return jsonify({"error": f"Folder not found: {app_folder_path}"}), 400
+
+        folders = sorted([
+            item for item in os.listdir(app_folder_path)
+            if os.path.isdir(os.path.join(app_folder_path, item))
+        ])
+
+        return jsonify({"folders": folders})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# =========================
 # COMPARE API
+# Uses local file paths — no upload size limit
 # =========================
 @app.route("/compare", methods=["POST"])
 def compare():
     try:
-        # Clean old uploads
-        if os.path.exists(UPLOAD_FOLDER):
-            shutil.rmtree(UPLOAD_FOLDER)
-        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+        data = request.get_json()
 
-        # Read uploaded files
-        document_file = request.files.get("document")
-        yaml_files = request.files.getlist("yamlFiles")
+        if not data:
+            return jsonify({"error": "JSON body required"}), 400
 
-        if not document_file:
-            return jsonify({"error": "PDF or DOCX file is required"}), 400
-
-        if not yaml_files:
-            return jsonify({"error": "App folder is required"}), 400
+        # Strip whitespace and surrounding quotes
+        # (users sometimes copy paths with quotes e.g. "C:\path\file.docx")
+        document_path   = data.get("documentPath", "").strip().strip('"').strip("'").strip()
+        app_folder_path = data.get("appFolderPath", "").strip().strip('"').strip("'").strip()
+        # selectedFolders: list of folder names chosen by user in UI
+        # If empty/not provided -> use ALL folders
+        selected_folders = data.get("selectedFolders", [])
 
         # -------------------------
-        # Save the document file
+        # Validate inputs
         # -------------------------
-        document_path = os.path.join(UPLOAD_FOLDER, document_file.filename)
-        document_file.save(document_path)
+        if not document_path:
+            return jsonify({"error": "documentPath is required"}), 400
+
+        if not app_folder_path:
+            return jsonify({"error": "appFolderPath is required"}), 400
+
+        if not os.path.isfile(document_path):
+            return jsonify({"error": f"Document file not found: {document_path}"}), 400
+
+        if not os.path.isdir(app_folder_path):
+            return jsonify({"error": f"App folder not found: {app_folder_path}"}), 400
 
         # -------------------------
-        # Save all yaml folder files
-        # Disk result:
-        #   uploads/yaml_folder/app/realtimeapi/prd.values.yaml
-        #   uploads/yaml_folder/app/realtimeapi/uat.values.yaml
-        #   uploads/yaml_folder/app/predictiontimeapp/prd.values.yaml
-        #   ...
+        # Resolve yaml_base_path and known_folders
         # -------------------------
-        yaml_upload_path = os.path.join(UPLOAD_FOLDER, "yaml_folder")
-        save_uploaded_yaml_files(yaml_files, yaml_upload_path)
+        yaml_base_path = app_folder_path
 
-        # -------------------------
-        # yaml_base_path = uploads/yaml_folder/app/
-        # This is the folder that directly contains service subfolders.
-        # Structure is always: app/ --> realtimeapi/, predictiontimeapp/, ...
-        # -------------------------
-        yaml_base_path = os.path.join(yaml_upload_path, "app")
+        all_folders = get_app_folder_names(yaml_base_path)
 
-        if not os.path.exists(yaml_base_path):
-            # Safety fallback: if "app" subfolder not found, log and use root
-            print(f"WARNING: 'app' folder not found inside upload. Using root: {yaml_upload_path}")
-            print(f"Files saved under: {yaml_upload_path}")
-            print(f"Contents: {os.listdir(yaml_upload_path)}")
-            yaml_base_path = yaml_upload_path
+        # If user selected specific folders, use only those
+        # Otherwise use all folders
+        if selected_folders:
+            known_folders = [f for f in all_folders if f in selected_folders]
+        else:
+            known_folders = all_folders
 
-        # -------------------------
-        # Get service folder names
-        # e.g. ["realtimeapi", "predictiontimeapp", "StopPrediction", ...]
-        # -------------------------
-        known_folders = get_app_folder_names(yaml_base_path)
-
-        print(f"\nYAML BASE PATH : {yaml_base_path}")
+        print(f"\nDOCUMENT       : {document_path}")
+        print(f"APP FOLDER     : {yaml_base_path}")
         print(f"KNOWN FOLDERS  : {known_folders}\n")
 
         if not known_folders:
             return jsonify({
                 "error": (
-                    "No service folders found inside the uploaded 'app' folder. "
-                    "Expected structure: app/realtimeapi/prd.values.yaml, etc."
+                    "No service folders found inside the app folder. "
+                    "Expected: app/realtimeapi/prd.values.yaml, etc."
                 )
             }), 400
 
@@ -163,25 +138,29 @@ def compare():
             return jsonify({
                 "error": (
                     "No data could be extracted from the document. "
-                    "Check that folder names in the document match the uploaded app folder."
+                    "Check that folder names in the document match the app folder."
                 )
             }), 400
 
         # -------------------------
-        # Compare against YAML files
+        # Compare against YAML
         # -------------------------
-        prd_rows, uat_rows = compare_data(extracted_data, yaml_base_path)
+        prod_rows, uat_rows = compare_data(extracted_data, yaml_base_path)
 
-        prd_mismatch = sum(1 for r in prd_rows if r["Status"] in ("NOT_FOUND", "VALUE_MISMATCH"))
-        uat_mismatch  = sum(1 for r in uat_rows  if r["Status"] in ("NOT_FOUND", "VALUE_MISMATCH"))
-        print(f"\nprd mismatches: {prd_mismatch}")
-        print(f"UAT  mismatches: {uat_mismatch}")
+        prod_mis = sum(1 for r in prod_rows if r["Status"] in ("NOT_FOUND", "VALUE_MISMATCH", "FOLDER_NOT_PRESENT"))
+        uat_mis  = sum(1 for r in uat_rows  if r["Status"] in ("NOT_FOUND", "VALUE_MISMATCH", "FOLDER_NOT_PRESENT"))
+        print(f"\nPROD mismatches: {prod_mis}")
+        print(f"UAT  mismatches: {uat_mis}")
 
         # -------------------------
-        # Generate and return Excel
+        # Generate Excel
         # -------------------------
+        if os.path.exists(UPLOAD_FOLDER):
+            shutil.rmtree(UPLOAD_FOLDER)
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
         output_excel = os.path.join(UPLOAD_FOLDER, "comparison_result.xlsx")
-        generate_excel(prd_rows, uat_rows, output_excel)
+        generate_excel(prod_rows, uat_rows, output_excel)
 
         return send_file(
             output_excel,
@@ -196,4 +175,4 @@ def compare():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)

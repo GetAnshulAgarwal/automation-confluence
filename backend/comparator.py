@@ -117,6 +117,26 @@ def read_yaml_file(file_path):
     # Normalize line endings (Windows CRLF -> LF)
     raw_text = raw_text.replace("\r\n", "\n").replace("\r", "\n")
 
+    # YAML does not allow TAB characters anywhere except inside quoted scalars.
+    # Strategy: process line by line —
+    #   - Lines that are purely indentation + key: keep leading spaces, strip trailing tabs
+    #   - Lines that contain a quoted value: replace ALL tabs with spaces safely
+    #   - Trailing tabs/spaces at end of any line: strip them
+    import re as _re
+    def _sanitize_tabs(text):
+        clean_lines = []
+        for line in text.split("\n"):
+            # Strip trailing whitespace/tabs from every line
+            line = line.rstrip()
+            # Replace any remaining tab that appears mid-line (inside values)
+            # We replace tab with a single space everywhere — YAML indentation
+            # uses spaces anyway, so leading tabs would be a structural error
+            # in the source file; replacing them with spaces is the safest option.
+            line = line.replace("\t", " ")
+            clean_lines.append(line)
+        return "\n".join(clean_lines)
+    raw_text = _sanitize_tabs(raw_text)
+
     # Try loading — first as single doc, then as multi-doc
     result = {}
     try:
@@ -161,9 +181,11 @@ def find_yaml_files(base_path, folder_name):
                 full_path = os.path.join(item_path, file)
 
                 file_lower = file.lower()
-                if file_lower == "prd.values.yaml":
+                # Accept all known prod file name variants
+                if file_lower in ("prd.values.yaml", "prod-ireland.values.yaml", "prd-ireland.values.yaml"):
                     prod_file = full_path
-                elif file_lower == "uat.values.yaml":
+                # Accept all known uat file name variants
+                elif file_lower in ("uat.values.yaml", "uat-ireland.values.yaml"):
                     uat_file = full_path
 
             break
@@ -206,6 +228,15 @@ def compare_data(doc_data, yaml_base_path):
 
         prod_file, uat_file = find_yaml_files(yaml_base_path, folder)
 
+        # Check if the subfolder itself exists on disk
+        folder_norm = normalize_folder_name(folder)
+        folder_exists_on_disk = False
+        if os.path.exists(yaml_base_path):
+            for item in os.listdir(yaml_base_path):
+                if normalize_folder_name(item) == folder_norm:
+                    folder_exists_on_disk = True
+                    break
+
         yaml_files = {
             "prod": prod_file,
             "uat": uat_file
@@ -213,11 +244,25 @@ def compare_data(doc_data, yaml_base_path):
 
         for env_name, yaml_file in yaml_files.items():
 
+            current_list = prod_rows if env_name == "prod" else uat_rows
+
+            # --- Case: subfolder not present in uploaded app folder ---
+            if not folder_exists_on_disk:
+                for row in rows:
+                    current_list.append({
+                        "Folder": folder,
+                        "Name": str(row["name"]).strip(),
+                        "PDF Value": str(row["value"]).strip(),
+                        "YAML Value": "Folder not present",
+                        "File": "Folder not present",
+                        "YAML File Found": "Folder not present",
+                        "Status": "FOLDER_NOT_PRESENT"
+                    })
+                continue
+
             yaml_data = {}
             if yaml_file and os.path.exists(yaml_file):
                 yaml_data = read_yaml_file(yaml_file)
-
-            current_list = prod_rows if env_name == "prod" else uat_rows
 
             for row in rows:
                 pdf_name = str(row["name"]).strip()
@@ -282,10 +327,11 @@ def compare_data(doc_data, yaml_base_path):
 # COLOR MAP FOR STATUS
 # =========================
 STATUS_COLORS = {
-    "NOT_FOUND":     "FFFF0000",  # Red
-    "VALUE_MISMATCH": "FFFFA500", # Orange
-    "FOUND":         "FF90EE90",  # Light green (placeholder found)
-    "MATCHED":       "FF00CC00",  # Green
+    "NOT_FOUND":          "FFFF0000",  # Red
+    "VALUE_MISMATCH":     "FFFFA500",  # Orange
+    "FOUND":              "FF90EE90",  # Light green (placeholder found)
+    "MATCHED":            "FF00CC00",  # Green
+    "FOLDER_NOT_PRESENT": "FFFF00FF",  # Magenta/Purple
 }
 
 
@@ -357,7 +403,7 @@ def generate_excel(prod_rows, uat_rows, output_file):
     ]
 
     # Filter: only keep mismatch rows
-    mismatch_statuses = {"NOT_FOUND", "VALUE_MISMATCH"}
+    mismatch_statuses = {"NOT_FOUND", "VALUE_MISMATCH", "FOLDER_NOT_PRESENT"}
 
     prod_mismatch = [r for r in prod_rows if r.get("Status") in mismatch_statuses]
     uat_mismatch  = [r for r in uat_rows  if r.get("Status") in mismatch_statuses]

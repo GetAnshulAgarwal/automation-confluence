@@ -1,7 +1,0 @@
-common-trapeze/nats:2.12.2-alpine
-common-trapeze/keycloakx
-common/aws-fsx-openzfs-csi-driver
-common/aws-secrets-store-csi-driver
-common/aws-secrets-store-csi-provider
-common/keda:2.18.0
-common/reloader

@@ -10,41 +10,75 @@
 
   <div class="container">
     <h1>📄 DOCX / PDF vs YAML Comparator</h1>
-    <p class="subtitle">Upload your document and app folder to find mismatched environment variables</p>
+    <p class="subtitle">Compare Confluence environment variables against Helm YAML values files</p>
 
     <div class="card">
 
+      <!-- Step 1: Document Path -->
+      <div class="step-label">Step 1 — Document</div>
       <div class="field">
-        <label>📎 Upload PDF or DOCX</label>
-        <input type="file" id="docFile" accept=".pdf,.docx">
-        <span class="hint">Document containing environment variable tables</span>
+        <label>📎 Document Path (PDF or DOCX)</label>
+        <input
+          type="text"
+          id="documentPath"
+          placeholder="C:\Users\You\project\confluence_export.docx"
+          spellcheck="false"
+        >
+        <span class="hint">Full path to your Confluence-exported PDF or DOCX file</span>
       </div>
 
+      <!-- Step 2: App Folder Path -->
+      <div class="step-label">Step 2 — App Folder</div>
       <div class="field">
-        <label>📁 Upload App Folder</label>
-        <input type="file" id="folderInput" webkitdirectory directory multiple>
-        <span class="hint">Folder containing subfolders with prd.values.yaml / uat.values.yaml</span>
+        <label>📁 App Folder Path</label>
+        <div class="path-row">
+          <input
+            type="text"
+            id="appFolderPath"
+            placeholder="C:\Users\You\project\app"
+            spellcheck="false"
+          >
+          <button id="loadFoldersBtn" class="secondary">Load Folders</button>
+        </div>
+        <span class="hint">Full path to the <strong>app</strong> folder (contains service subfolders like realtimeapi, predictiontimeapp, etc.)</span>
       </div>
 
-      <button id="compareBtn">🔍 Compare & Download Excel</button>
+      <!-- Step 3: Select Folders -->
+      <div id="folderSelectionSection" style="display:none;">
+        <div class="step-label">Step 3 — Select Folders to Compare</div>
+        <div class="folder-toolbar">
+          <button class="text-btn" id="selectAllBtn">Select All</button>
+          <button class="text-btn" id="deselectAllBtn">Deselect All</button>
+          <span id="selectedCount" class="count-badge">0 selected</span>
+        </div>
+        <div id="folderList" class="folder-grid"></div>
+      </div>
+
+      <!-- Compare Button -->
+      <button id="compareBtn" style="display:none;">🔍 Compare &amp; Download Excel</button>
 
       <div id="status"></div>
 
     </div>
 
+    <!-- Legend -->
     <div class="legend">
       <h3>Excel Color Legend</h3>
       <div class="legend-items">
         <div class="legend-item">
           <span class="dot red"></span>
-          <span><strong>NOT_FOUND</strong> — Key missing in YAML entirely</span>
+          <span><strong>NOT_FOUND</strong> — Key missing in YAML</span>
         </div>
         <div class="legend-item">
           <span class="dot orange"></span>
           <span><strong>VALUE_MISMATCH</strong> — Key found but value differs</span>
         </div>
+        <div class="legend-item">
+          <span class="dot purple"></span>
+          <span><strong>FOLDER_NOT_PRESENT</strong> — Service folder missing in app directory</span>
+        </div>
       </div>
-      <p class="legend-note">✅ MATCHED and FOUND rows are excluded from the Excel (no issues)</p>
+      <p class="legend-note">✅ MATCHED and FOUND rows are not shown — only problems appear</p>
     </div>
   </div>
 
